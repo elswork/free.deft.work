@@ -16,7 +16,7 @@ Aquí tienes un desglose de los aspectos clave a considerar para tu proyecto, ut
             *   Género/Categoría.
             *   Descripción.
             *   Fotos del libro.
-            *   Estado (Nuevo, Usado, etc.).
+            ~~*   Estado (Nuevo, Usado, etc.).~~
             *   Estado de disponibilidad (Disponible, En préstamo, etc.).
         *   **Leer:**
             *   Navegar/Buscar todos los libros disponibles.
@@ -24,16 +24,16 @@ Aquí tienes un desglose de los aspectos clave a considerar para tu proyecto, ut
             *   Ver información detallada de un libro específico.
         *   **Actualizar:** Los propietarios pueden editar los detalles de sus libros.
         *   **Eliminar:** Los propietarios pueden eliminar sus libros de la plataforma.
-*   **Sistema de Préstamos (Firestore Database):**
-    *   **Solicitudes de Préstamo:** Los prestatarios pueden solicitar tomar prestado un libro.
-    *   **Aprobación/Rechazo de Préstamos:** Los propietarios pueden aprobar o rechazar las solicitudes de préstamo.
-    *   **Seguimiento de Préstamos:**
-        *   Seguimiento del estado de cada préstamo (Solicitado, Aprobado, En préstamo, Devuelto).
-        *   Establecer duraciones de préstamo y fechas de vencimiento.
-        *   Notificaciones para las próximas fechas de vencimiento.
-*   **Sistema de Mensajería (Firestore o Realtime Database):**
-    *   Mensajería directa entre el propietario del libro y el prestatario para un préstamo específico.
-    *   Funcionalidad de chat en tiempo real.
+~~*   **Sistema de Préstamos (Firestore Database):**~~
+    *   ~~**Solicitudes de Préstamo:** Los prestatarios pueden solicitar tomar prestado un libro.~~
+    *   ~~**Aprobación/Rechazo de Préstamos:** Los propietarios pueden aprobar o rechazar las solicitudes de préstamo.~~
+    *   ~~**Seguimiento de Préstamos:**~~
+        ~~*   Seguimiento del estado de cada préstamo (Solicitado, Aprobado, En préstamo, Devuelto).~~
+        ~~*   Establecer duraciones de préstamo y fechas de vencimiento.~~
+        ~~*   Notificaciones para las próximas fechas de vencimiento.~~
+~~*   **Sistema de Mensajería (Firestore o Realtime Database):**~~
+    ~~*   Mensajería directa entre el propietario del libro y el prestatario para un préstamo específico.~~
+    ~~*   Funcionalidad de chat en tiempo real.~~
 *   **Reseñas y Calificaciones (Firestore Database):**
     *   Los usuarios pueden calificar y dejar reseñas tanto de los libros como de otros usuarios (prestatarios/prestamistas).
     *   Esto ayuda a construir confianza dentro de la comunidad.
@@ -71,15 +71,15 @@ Una posible estructura para tu base de datos de Firestore podría ser:
         *   `ownerId`: "{userId}"
         *   `status`: "disponible" | "en_prestamo"
         *   ... (otros detalles del libro)
-*   `loans`:
-    *   `{loanId}`:
-        *   `bookId`: "{bookId}"
-        *   `ownerId`: "{userId}"
-        *   `borrowerId`: "{userId}"
-        *   `requestDate`: Timestamp
-        *   `loanDate`: Timestamp
-        *   `returnDate`: Timestamp
-        *   `status`: "solicitado" | "aprobado" | "rechazado" | "devuelto"
+~~*   `loans`:~~
+    ~~*   `{loanId}`:~~
+        ~~*   `bookId`: "{bookId}"~~
+        ~~*   `ownerId`: "{userId}"~~
+        ~~*   `borrowerId`: "{userId}"~~
+        ~~*   `requestDate`: Timestamp~~
+        ~~*   `loanDate`: Timestamp~~
+        ~~*   `returnDate`: Timestamp~~
+        ~~*   `status`: "solicitado" | "aprobado" | "rechazado" | "devuelto"~~
 *   `chats`:
     *   `{chatId}` (podría ser el mismo que `loanId`):
         *   `messages`:
