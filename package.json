@@ -1,0 +1,23 @@
+{
+  "name": "free.deft.work",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elswork/free.deft.work.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elswork/free.deft.work/issues"
+  },
+  "homepage": "https://github.com/elswork/free.deft.work#readme",
+  "description": "",
+  "dependencies": {
+    "firebase-tools": "^14.11.0"
+  }
+}

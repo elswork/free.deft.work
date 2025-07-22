@@ -4,5 +4,29 @@
     "nombre": "Brainstorming para web de préstamo de libros",
     "descripcion": "Realizar un brainstorming para definir los requisitos y consideraciones para crear una web de préstamo de libros con gestión de usuarios y base de datos en Firebase.",
     "estado": "pendiente"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Mejorar diseño web",
+    "descripcion": "Transformar la interfaz actual en un diseño moderno, elegante y responsive usando Bootstrap y refactorizando componentes.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Cambiar título de la página",
+    "descripcion": "Cambiar el título de la página de 'Firebase React App' a 'Free Deft Work' en public/index.html y src/App.js.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Gestión de perfiles de usuario",
+    "descripcion": "Implementar la funcionalidad para que los usuarios puedan ver y editar su perfil (nombre de usuario, foto de perfil, ubicación, etc.) en Firestore y Storage.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Implementar funcionalidades de actualizar y eliminar libros",
+    "descripcion": "Añadir la capacidad de editar y eliminar libros de Firestore, incluyendo la gestión de imágenes en Storage.",
+    "estado": "Realizado"
   }
 ]
