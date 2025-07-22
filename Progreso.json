@@ -1,0 +1,14 @@
+[
+  {
+    "fecha_creacion": "2025-07-04T12:00:00",
+    "nombre": "Mostrar email de usuario autenticado en Navbar",
+    "descripcion": "Modificar el componente Navbar para que muestre el email del usuario autenticado en lugar del botón 'Iniciar Sesión'.",
+    "estado": "realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-22T13:35:00",
+    "nombre": "Brainstorming para web de préstamo de libros",
+    "descripcion": "Realizar un brainstorming para definir los requisitos y consideraciones para crear una web de préstamo de libros con gestión de usuarios y base de datos en Firebase.",
+    "estado": "pendiente"
+  }
+]
