@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import firebaseConfig from './firebaseConfig';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
 import './App.css';
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
 function App() {
@@ -46,18 +50,18 @@ function App() {
       <main className="card p-4 shadow-sm">
         {user ? (
           <div className="text-center">
-            <p className="lead">Welcome, {user.displayName}!</p>
+            <p className="lead">¡Bienvenido, {user.displayName}!</p>
             <div className="mb-3">
-              <button className="btn btn-info me-2" onClick={() => setShowProfile(false)}>View Books</button>
-              <button className="btn btn-secondary me-2" onClick={() => setShowProfile(true)}>Edit Profile</button>
-              <button className="btn btn-danger" onClick={handleSignOut}>Sign Out</button>
+              <button className="btn btn-info me-2" onClick={() => setShowProfile(false)}>Ver Libros</button>
+              <button className="btn btn-secondary me-2" onClick={() => setShowProfile(true)}>Editar Perfil</button>
+              <button className="btn btn-danger" onClick={handleSignOut}>Cerrar Sesión</button>
             </div>
-            {showProfile ? <UserProfile user={user} /> : <BookList />}
+            {showProfile ? <UserProfile user={user} db={db} storage={storage} /> : <BookList auth={auth} db={db} storage={storage} />}
           </div>
         ) : (
           <div className="text-center">
-            <p className="lead">Please sign in to continue.</p>
-            <button className="btn btn-primary" onClick={handleSignIn}>Sign In with Google</button>
+            <p className="lead">Por favor, inicia sesión para continuar.</p>
+            <button className="btn btn-primary" onClick={handleSignIn}>Iniciar Sesión con Google</button>
           </div>
         )}
       </main>

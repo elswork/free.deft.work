@@ -28,5 +28,23 @@
     "nombre": "Implementar funcionalidades de actualizar y eliminar libros",
     "descripcion": "Añadir la capacidad de editar y eliminar libros de Firestore, incluyendo la gestión de imágenes en Storage.",
     "estado": "Realizado"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Implementar sistema de mensajería",
+    "descripcion": "Crear un componente de chat en React e integrarlo con la lista de libros para permitir la comunicación entre usuarios sobre un libro específico.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Implementar reseñas y calificaciones",
+    "descripcion": "Permitir a los usuarios calificar y dejar reseñas de libros y otros usuarios, almacenándolas en Firestore y mostrándolas en la interfaz.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Traducir interfaz al castellano",
+    "descripcion": "Traducir todos los elementos y mensajes de la interfaz de usuario al castellano, excepto 'Free Deft Work'.",
+    "estado": "Realizado"
   }
 ]

@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { initializeApp } from 'firebase/app';
-import firebaseConfig from '../firebaseConfig';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-function UserProfile({ user }) {
+function UserProfile({ user, db, storage }) {
   const [profile, setProfile] = useState({
     username: '',
     location: '',
@@ -45,7 +39,7 @@ function UserProfile({ user }) {
       }
     };
     fetchProfile();
-  }, [user]);
+  }, [user, db]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -89,7 +83,7 @@ function UserProfile({ user }) {
   };
 
   if (loading) {
-    return <div className="text-center mt-4">Loading profile...</div>;
+    return <div className="text-center mt-4">Cargando perfil...</div>;
   }
 
   if (error) {
@@ -98,7 +92,7 @@ function UserProfile({ user }) {
 
   return (
     <div className="card mt-4 p-4 shadow-sm">
-      <h2 className="card-title text-center mb-4">User Profile</h2>
+      <h2 className="card-title text-center mb-4">Perfil de Usuario</h2>
       <form onSubmit={handleSaveProfile}>
         <div className="mb-3 text-center">
           {profile.profilePictureUrl && (
@@ -112,7 +106,7 @@ function UserProfile({ user }) {
           <input type="file" className="form-control" onChange={handleImageChange} />
         </div>
         <div className="mb-3">
-          <label htmlFor="username" className="form-label">Username</label>
+          <label htmlFor="username" className="form-label">Nombre de Usuario</label>
           <input
             type="text"
             className="form-control"
@@ -124,7 +118,7 @@ function UserProfile({ user }) {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="location" className="form-label">Location</label>
+          <label htmlFor="location" className="form-label">Ubicación</label>
           <input
             type="text"
             className="form-control"
@@ -135,7 +129,7 @@ function UserProfile({ user }) {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="bio" className="form-label">Bio</label>
+          <label htmlFor="bio" className="form-label">Biografía</label>
           <textarea
             className="form-control"
             id="bio"
@@ -145,7 +139,7 @@ function UserProfile({ user }) {
             rows="3"
           ></textarea>
         </div>
-        <button type="submit" className="btn btn-success w-100" disabled={loading}>Save Profile</button>
+        <button type="submit" className="btn btn-success w-100" disabled={loading}>Guardar Perfil</button>
       </form>
     </div>
   );
