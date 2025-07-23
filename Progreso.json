@@ -130,5 +130,65 @@
     "nombre": "Resolver problema de índice de Firestore y etiqueta 'Propietario'",
     "descripcion": "Asegurar que el índice compuesto de Firestore esté correctamente definido y que la etiqueta 'Propietario' se muestre correctamente.",
     "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Añadir etiqueta imprimible con QR y URL del libro",
+    "descripcion": "Añadir una sección en la página de detalles del libro con un QR y la URL del libro, y un botón para imprimirla.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta",
+    "descripcion": "Refactorizar la función de impresión para evitar la manipulación directa del DOM y resolver el error de React.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (segundo intento)",
+    "descripcion": "Eliminar printWindow.close() de la función handlePrint para evitar conflictos con React.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (tercer intento)",
+    "descripcion": "Eliminar document.body.innerHTML = originalContents; y window.location.reload(); de la función handlePrint.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (cuarto intento)",
+    "descripcion": "Añadir printWindow.close() a la función handlePrint, pero envuelto en un setTimeout.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (quinto intento)",
+    "descripcion": "Eliminar setTimeout de printWindow.close() de la función handlePrint.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (sexto intento)",
+    "descripcion": "Eliminar printWindow.close() de la función handlePrint.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (séptimo intento)",
+    "descripcion": "Utilizar react-to-print para manejar la impresión de forma segura.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (octavo intento)",
+    "descripcion": "Refactorizar la función de impresión para usar un iframe temporal y evitar conflictos con React.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Cambiar URL del QR y en URL de la web",
+    "descripcion": "Cambiar la URL base del QR y la URL mostrada a https://free.deft.work/, y reemplazar la API de Google Charts por una alternativa.",
+    "estado": "Realizado"
   }
 ]

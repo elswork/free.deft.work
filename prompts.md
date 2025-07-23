@@ -41,3 +41,7 @@ BookDetail.js:61
 Si la entrada en el foro es del propietario del libro debe aparecer una etiqueta justo delante del nombre que indique Propietario APM
 No aparece la etiqueta APM
 el problema persiste APM
+La pagina da error Uncaught Error: Minified React error #130; visit https://react.dev/errors/130?args[]=object&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings. APM
+La pagina da error Uncaught Error: Minified React error #130; visit https://react.dev/errors/130?args[]=object&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings. APM
+Cambiar la URL del QR y en URL de https://free-deft-work.web.app/ a https://free.deft.work además la imagen no carga porque ya no funciona https://chart.googleapis.com/ APM
+La pagina da error Uncaught Error: Minified React error #130; visit https://react.dev/errors/130?args[]=object&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings. APM

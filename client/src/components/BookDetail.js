@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { useReactToPrint } from 'react-to-print';
+
+
 
 function BookDetail({ db, auth }) {
   const { webId } = useParams();
@@ -10,6 +13,11 @@ function BookDetail({ db, auth }) {
   const [error, setError] = useState(null);
   const [forumEntries, setForumEntries] = useState([]);
   const [newEntryText, setNewEntryText] = useState('');
+
+  const componentRef = useRef();
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -34,6 +42,8 @@ function BookDetail({ db, auth }) {
       fetchBook();
     }
   }, [webId, db]);
+
+  
 
   useEffect(() => {
     if (webId) {
@@ -102,6 +112,16 @@ function BookDetail({ db, auth }) {
         </div>
       </div>
 
+      <div className="card p-4 shadow-sm mb-4">
+        <h3 className="mb-3">Etiqueta Imprimible</h3>
+        <div id="printable-label" className="text-center p-3" style={{ border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#fff' }} ref={componentRef}>
+          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://free.deft.work/${book.webId}`} alt="QR Code" />
+          <p className="mt-3 mb-0" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>free.deft.work/</p>
+          <p className="mt-3 mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold' }}>{book.webId}</p>
+        </div>
+        <button className="btn btn-secondary mt-3" onClick={handlePrint}>Imprimir Etiqueta</button>
+      </div>
+
       <div className="card p-4 shadow-sm">
         <h3 className="mb-3">Foro del Libro</h3>
         <div className="forum-entries mb-4" style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #eee', padding: '10px', borderRadius: '5px' }}>
@@ -140,3 +160,5 @@ function BookDetail({ db, auth }) {
 }
 
 export default BookDetail;
+
+
