@@ -1,3 +1,9 @@
+body {
+  background-color: #f5f5dc; /* Color de fondo amarillento */
+  background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); /* Textura de papel */
+  background-repeat: repeat;
+}
+
 .App {
   text-align: center;
 }

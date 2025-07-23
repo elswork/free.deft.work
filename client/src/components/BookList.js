@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import Chat from './Chat';
-import ReviewForm from './ReviewForm'; // Import the ReviewForm component
+import { Link } from 'react-router-dom';
+
+
 
 // Function to generate a unique 5-character alphanumeric code
 const generateUniqueCode = () => {
@@ -16,6 +17,7 @@ const generateUniqueCode = () => {
 
 function BookList({ auth, db, storage }) {
   const [books, setBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -27,8 +29,8 @@ function BookList({ auth, db, storage }) {
   });
   const [imageFile, setImageFile] = useState(null);
   const [editingBookId, setEditingBookId] = useState(null);
-  const [selectedBookForChat, setSelectedBookForChat] = useState(null);
-  const [reviews, setReviews] = useState({}); // New state for reviews
+  
+  
 
   useEffect(() => {
     if (auth.currentUser) {
@@ -44,20 +46,7 @@ function BookList({ auth, db, storage }) {
     }
   }, [auth.currentUser, db]);
 
-  useEffect(() => {
-    const unsubscribeReviews = onSnapshot(collection(db, "reviews"), (snapshot) => {
-      const newReviews = {};
-      snapshot.docs.forEach(doc => {
-        const review = doc.data();
-        if (!newReviews[review.bookId]) {
-          newReviews[review.bookId] = [];
-        }
-        newReviews[review.bookId].push(review);
-      });
-      setReviews(newReviews);
-    });
-    return () => unsubscribeReviews();
-  }, [db]);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -123,17 +112,10 @@ function BookList({ auth, db, storage }) {
     }
   };
 
-  const handleChatClick = (book) => {
-    setSelectedBookForChat(book);
-  };
-
-  const handleCloseChat = () => {
-    setSelectedBookForChat(null);
-  };
-
-  if (selectedBookForChat) {
-    return <Chat book={selectedBookForChat} onCloseChat={handleCloseChat} auth={auth} db={db} storage={storage} />;
-  }
+  const filteredBooks = books.filter(book =>
+    book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    book.author.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="mt-4">
@@ -176,8 +158,17 @@ function BookList({ auth, db, storage }) {
       </form>
 
       <h2 className="mb-3">Libros Disponibles</h2>
+      <div className="mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Buscar por título o autor..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       <div className="row">
-        {books.map((book) => (
+        {filteredBooks.map((book) => (
           <div key={book.id} className="col-md-4 mb-4">
             <div className="card h-100">
               {book.imageUrl && <img src={book.imageUrl} className="card-img-top" alt={book.title} style={{ height: '200px', objectFit: 'cover' }} />}
@@ -185,17 +176,8 @@ function BookList({ auth, db, storage }) {
                 <h5 className="card-title">{book.title}</h5>
                 <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>
                 <p className="card-text">Estado: {book.status}</p>
-                {reviews[book.id] && reviews[book.id].length > 0 && (
-                  <div className="mt-3">
-                    <h6>Reseñas:</h6>
-                    {reviews[book.id].map((review, index) => (
-                      <div key={index} className="mb-2 border-bottom pb-2">
-                        <p className="mb-0">Calificación: {review.rating} / 5</p>
-                        <p className="mb-0">"{review.reviewText}"</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <p className="card-text"><strong>ID Web:</strong> <Link to={`/${book.webId}`}>{book.webId}</Link></p>
+                
                 {auth.currentUser && auth.currentUser.uid === book.ownerId ? (
                   <div className="d-flex justify-content-between mt-3">
                     <button className="btn btn-warning btn-sm" onClick={() => handleEditClick(book)}>Editar</button>
@@ -204,8 +186,8 @@ function BookList({ auth, db, storage }) {
                 ) : (
                   auth.currentUser && (
                     <div className="mt-3">
-                      <button className="btn btn-info btn-sm me-2" onClick={() => handleChatClick(book)}>Chatear con Propietario</button>
-                      <ReviewForm bookId={book.id} userId={auth.currentUser.uid} db={db} />
+                      
+                      
                     </div>
                   )
                 )}

@@ -14,7 +14,7 @@ Comprendo perfectamente. La apariencia es crucial para la experiencia del usuari
 Aquí está mi plan:
 
 1.  **Integrar Bootstrap:** Añadiré el framework CSS Bootstrap al proyecto de React para facilitar un diseño responsive y moderno.
-2.  **Refactorizar componentes:** Modificaré `App.js` y `BookList.js` para utilizar las clases y componentes de Bootstrap, mejorando la disposición, la tipografía, los colores y la interactividad de los elementos.
+2.  **Refactorizar componentes:** Modificaré `App.js` y `BookList.js` para utilizar las clases y componentes de Bootstrap, mejorando la disposición, los colores y la interactividad de los elementos.
 3.  **Ajustes de estilo:** Añadiré CSS personalizado si es necesario para lograr un acabado más pulido y único.
 
 Primero, actualizaré los ficheros `Progreso.json` y `prompts.md` como solicitaste.
@@ -23,3 +23,21 @@ Cambiar el titulo de la pagina de  Firebase React App a Free Deft Work
 De acuerdo. Cambiaré el título de la página de "Firebase React App" a "Free Deft Work".
 
 Primero, modificaré el título en `public/index.html` y luego en `src/App.js`. Después, reconstruiré y desplegaré la aplicación.
+
+Quisiera eliminar la parte del chat que previamente añadimos APM
+Quisiera eliminar la parte del las reseñas que previamente añadimos APM
+como puedo lograr que el webId por ejemplo https://free-deft-work.web.app/LYPLV me lleve a la página del libro APM
+me gustaria que la web tenga la apariencia de la página de un libro ligeramente amarillenta, puedes buscar una textura o te la tengo que dar yo APM
+Añadir una barra de búsqueda que filtre libros por título o autor APM
+tengo un par de logotipos en que carpeta te los puedo subir para que trabajes con ellos APM
+puedes crear un icono a partir de la imagen y sustituirlo en la web APM
+un lector puede ver el webID y link  del libro de otro propietario APM
+En la página webId del libro hay que añadir un foro en el que el propietario y los prestatarios puedan escribir sus entradas APM
+se ha enviado la entrada pero no aparece en la página a lo mejor es por este error BookDetail.js:70 
+ Error adding forum entry: FirebaseError: Missing or insufficient permissions.
+BookDetail.js:61 
+ 
+ POST https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channe…pmCek4&SID=GJKRX35T2qNt2eIZ1ZjsiQ&RID=89689&TYPE=terminate&zx=9lp9jhtzcear 400 (Bad Request) APM
+Si la entrada en el foro es del propietario del libro debe aparecer una etiqueta justo delante del nombre que indique Propietario APM
+No aparece la etiqueta APM
+el problema persiste APM
