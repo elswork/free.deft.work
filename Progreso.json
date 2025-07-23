@@ -46,5 +46,11 @@
     "nombre": "Traducir interfaz al castellano",
     "descripcion": "Traducir todos los elementos y mensajes de la interfaz de usuario al castellano, excepto 'Free Deft Work'.",
     "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T00:00:00",
+    "nombre": "Generar código único para libros",
+    "descripcion": "Asociar un código único alfanumérico de 5 caracteres (mayúsculas) a cada libro para su identificación web (ej. VWXYZ).",
+    "estado": "Realizado"
   }
 ]

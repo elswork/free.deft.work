@@ -4,6 +4,16 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import Chat from './Chat';
 import ReviewForm from './ReviewForm'; // Import the ReviewForm component
 
+// Function to generate a unique 5-character alphanumeric code
+const generateUniqueCode = () => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 5; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+
 function BookList({ auth, db, storage }) {
   const [books, setBooks] = useState([]);
   const [newBook, setNewBook] = useState({
@@ -76,7 +86,8 @@ function BookList({ auth, db, storage }) {
         await updateDoc(bookRef, { ...newBook, imageUrl });
         setEditingBookId(null);
       } else {
-        await addDoc(collection(db, "books"), { ...newBook, imageUrl, ownerId: auth.currentUser.uid });
+        const webId = generateUniqueCode();
+        await addDoc(collection(db, "books"), { ...newBook, imageUrl, ownerId: auth.currentUser.uid, webId });
       }
       setNewBook({
         title: '',
