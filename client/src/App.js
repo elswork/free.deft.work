@@ -4,10 +4,14 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faSignInAlt, faSignOutAlt, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
 import BookDetail from './components/BookDetail';
+import AuthForm from './components/AuthForm'; // Importar el nuevo componente
 import './App.css';
 
 const app = initializeApp(firebaseConfig);
@@ -49,27 +53,43 @@ function App() {
           <Link to="/">
             <img src="/images/LogoFDW.webp" alt="Free Deft Work Logo" className="img-fluid" style={{ maxWidth: '200px' }} />
           </Link>
+          <nav className="mt-3">
+            <ul className="nav justify-content-center">
+              <li className="nav-item">
+                <Link className="btn btn-outline-primary mx-1" to="/"><FontAwesomeIcon icon={faHome} /> Inicio</Link>
+              </li>
+              {user ? (
+                <li className="nav-item">
+                  <button className="btn btn-outline-danger mx-1" onClick={handleSignOut}><FontAwesomeIcon icon={faSignOutAlt} /> Cerrar Sesión</button>
+                </li>
+              ) : (
+                <li className="nav-item">
+                  <Link className="btn btn-primary mx-1" to="/auth"><FontAwesomeIcon icon={faSignInAlt} /> Iniciar Sesión / Registrarse</Link>
+                </li>
+              )}
+            </ul>
+          </nav>
         </header>
         <main className="card p-4 shadow-sm">
-          <Routes>
-            <Route path="/" element={
-              user ? (
-                <div className="text-center">
-                  <p className="lead">¡Bienvenido, {user.displayName}!</p>
-                  <div className="mb-3">
-                    <button className="btn btn-danger" onClick={handleSignOut}>Cerrar Sesión</button>
+          <Switch>
+            <Route path="/" exact render={(props) => (
+              <>
+                {user ? (
+                  <div className="text-center">
+                    <p className="lead">¡Bienvenido, {user.displayName}!</p>
+                    <BookList auth={auth} db={db} storage={storage} />
                   </div>
-                  <BookList auth={auth} db={db} storage={storage} />
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p className="lead">Por favor, inicia sesión para continuar.</p>
-                  <button className="btn btn-primary" onClick={handleSignIn}>Iniciar Sesión con Google</button>
-                </div>
-              )
-            } />
-            <Route path="/:webId" element={<BookDetail db={db} auth={auth} />} />
-          </Routes>
+                ) : (
+                  <div className="text-center">
+                    <p className="lead">Por favor, inicia sesión para continuar.</p>
+                    <button className="btn btn-primary" onClick={handleSignIn}><FontAwesomeIcon icon={faGoogle} /> Iniciar Sesión con Google</button>
+                  </div>
+                )}
+              </>
+            )} />
+            <Route path="/auth" component={() => <AuthForm auth={auth} />} />
+            <Route path="/:webId" component={() => <BookDetail db={db} auth={auth} />} />
+          </Switch>
         </main>
       </div>
     </Router>

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { useReactToPrint } from 'react-to-print';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPrint } from '@fortawesome/free-solid-svg-icons';
 
 
 
@@ -15,9 +16,28 @@ function BookDetail({ db, auth }) {
   const [newEntryText, setNewEntryText] = useState('');
 
   const componentRef = useRef();
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-  });
+
+  const handlePrint = () => {
+    const printContent = componentRef.current;
+    if (printContent) {
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write('<html><head><title>Imprimir Etiqueta</title>');
+      // Opcional: Copiar estilos CSS para que la impresión se vea similar a la pantalla
+      const styles = document.querySelectorAll('link[rel="stylesheet"], style');
+      styles.forEach(style => {
+        printWindow.document.write(style.outerHTML);
+      });
+      printWindow.document.write('</head><body>');
+      printWindow.document.write(printContent.innerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    } else {
+      console.error("No se encontró contenido para imprimir.");
+    }
+  };
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -119,7 +139,7 @@ function BookDetail({ db, auth }) {
           <p className="mt-3 mb-0" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>free.deft.work/</p>
           <p className="mt-3 mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold' }}>{book.webId}</p>
         </div>
-        <button className="btn btn-secondary mt-3" onClick={handlePrint}>Imprimir Etiqueta</button>
+        <button className="btn btn-secondary mt-3" onClick={handlePrint} disabled={!book}><FontAwesomeIcon icon={faPrint} /> Imprimir Etiqueta</button>
       </div>
 
       <div className="card p-4 shadow-sm">

@@ -1,8 +1,32 @@
-# free.deft.work
+# ¡Bienvenido a Free.Deft.Work!
 
-## Descripción
+![Free Deft Work](https://raw.githubusercontent.com/elswork/free.deft.work/main/public/logo.png)
 
-Cuando donas, prestas o regalas un libro con la etiqueta QR que genera este proyecto, estas permitiendo la interacción entre las personas por las que va a pasar el libro. Este proyecto es una aplicación web que permite gestionar y compartir información sobre libros, incluyendo la generación de etiquetas imprimibles con códigos QR para una fácil identificación y acceso. También incorpora un foro para la interacción de los usuarios.
+## Conecta y Comparte: El Poder de un Libro Viajero
+
+Cuando compartes un libro con el código QR único generado por nuestro proyecto, no solo estás dando vida a una historia, sino que también estás tejiendo una red de conexiones entre personas. Imagina esto: cada vez que ese libro pasa de mano en mano, ya sea por donación, préstamo o como un regalo pensado, se convierte en un vehículo de interacción humana.
+
+Este innovador proyecto es una aplicación web diseñada para revolucionar la forma en que gestionamos y compartimos información sobre libros. Su corazón reside en la generación de etiquetas imprimibles con códigos QR, haciendo que la identificación y el acceso a los detalles del libro sean increíblemente fáciles. Simplemente escanea el código y descubre el viaje que ha hecho, quién lo ha leído antes y quizás, las impresiones que ha dejado.
+
+Pero la magia no termina ahí. Al participar, te unes a una comunidad vibrante donde cada libro tiene una historia que contar, más allá de sus páginas. Nuestro proyecto incorpora un foro interactivo donde los usuarios pueden compartir sus pensamientos, debatir ideas, descubrir nuevas lecturas y forjar nuevas amistades a través de la pasión compartida por los libros.
+
+Las ventajas de compartir tus libros con nuestro sistema son inmensas:
+
+Fomenta la interacción social: Cada libro se convierte en un punto de encuentro, conectando a lectores de diferentes orígenes y experiencias.
+
+Construye comunidades: Un foro dedicado permite el diálogo, el intercambio de recomendaciones y la creación de lazos entre amantes de la lectura.
+
+Alarga la vida de los libros: Al darles un propósito continuo, reduces el desperdicio y promueves un consumo más sostenible.
+
+Democratiza el acceso a la lectura: Libros que quizás estarían acumulando polvo, ahora pueden llegar a nuevas manos y mentes.
+
+Descubre nuevas perspectivas: Ver cómo otros interactúan con un libro que has compartido puede enriquecer tu propia comprensión y aprecio.
+
+Crea un legado literario: Tus libros no solo se leen, sino que se convierten en parte de una historia más grande, documentada a través de sus viajes.
+
+Promueve la economía circular: En lugar de comprar siempre libros nuevos, se fomenta el intercambio y el aprovechamiento de recursos existentes.
+
+En esencia, este proyecto transforma un acto simple como compartir un libro en una experiencia enriquecedora y conectiva. ¿Estás listo para que tus libros cuenten su propia historia y conecten a personas en el camino?
 
 ## Características
 
@@ -81,4 +105,23 @@ Este proyecto está bajo la licencia MIT. Consulta el fichero `LICENSE` para má
 
 Otras formas de financiarme:
 
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/elswork)](https://github.com/sponsors/elswork) [![Donar PayPal](https://img.shields.io/badge/Donar-PayPal-green.svg)](https://www.paypal.com/donate/?business=LFKA5YRJAFYR6&no_recurring=0&item_name=Donación+para+Código+Abierto&currency_code=EUR) [![Donar Coinbase](https://img.shields.io/badge/coinbase-elswork-blue)](https://elswork.cb.id)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/elswork)](https://github.com/sponsors/elswork) [![Donar PayPal](https://img.shields.io/badge/Donar-PayPal-green.svg)](https://www.paypal.com/donate/?business=LFKA5YRJAFYR6&no_recurring=0&item_name=Donación+para+Código+Abierto&currency_code=EUR) 
+---
+
+**Donar con Bitcoin (BTC):**
+
+`bc1qfxsxxcr2akh2l26m6am0vpwwkhnsua04lmgfef`
+
+[Ver en Blockchain.com](https://www.blockchain.com/btc/address/bc1qfxsxxcr2akh2l26m6am0vpwwkhnsua04lmgfef)
+
+---
+
+**Donar con Ethereum (ETH):**
+
+`0x186b91982CbB6450Af5Ab6F32edf074dFCE8771c`
+
+[Ver en Etherscan](https://etherscan.io/address/0x186b91982CbB6450Af5Ab6F32edf074dFCE8771c)
+
+---
+
+*Ten en cuenta que las donaciones son voluntarias y no son reembolsables. ¡Gracias por tu generosidad!*
