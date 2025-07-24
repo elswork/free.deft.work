@@ -33,6 +33,12 @@
     "fecha": "2025-07-24",
     "nombre": "Implementar Vista Previa para Compartir (Open Graph/Twitter Card)",
     "descripcion": "Añadir metaetiquetas Open Graph y Twitter Card dinámicamente en BookDetail.js para mejorar la vista previa al compartir enlaces de libros.",
-    "estado": "Pendiente: Verificar reglas de Firebase y reintentar pre-renderización"
+    "estado": "Pendiente: Verificación con Twitter Card Validator"
+  },
+  {
+    "fecha": "2025-07-24",
+    "nombre": "Corregir Impresión de QR",
+    "descripcion": "Asegurar que la imagen del QR se muestre correctamente en la vista previa de impresión.",
+    "estado": "Pendiente: Verificación"
   }
 ]

@@ -5,6 +5,7 @@ import { getAuth } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPrint, faPaperPlane, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { Helmet } from 'react-helmet';
+import { QRCode } from 'qrcode.react';
 
 
 
@@ -171,7 +172,11 @@ function BookDetail({ db, auth }) {
         <div id="printable-label" className="text-center p-3" style={{ border: '6px solid black', borderRadius: '5px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', width: 'fit-content', margin: '0 auto', gap: '0px' }} ref={componentRef}>
           {book ? (
             <>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://free.deft.work/${book.webId}`} alt="QR Code" width="128" height="128" />
+              <QRCode
+                value={`https://free.deft.work/${book.webId}`}
+                size={128}
+                includeMargin={true}
+              />
               <p className="mb-0" style={{ fontSize: '1.2rem', fontWeight: 'bold', lineHeight: '1.2' }}>free.deft.work/</p>
               <p className="mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold', marginTop: '-14px' }}>{book.webId}</p>
             </>

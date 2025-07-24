@@ -12,6 +12,7 @@
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
     "firebase": "^9.23.0",
+    "qrcode.react": "^4.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-helmet": "^6.1.0",
@@ -47,8 +48,16 @@
     ]
   },
   "reactSnap": {
-    "puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox"],
-    "include": ["/", "/3P5S1", "/I85CG", "/E5D3A"],
+    "puppeteerArgs": [
+      "--no-sandbox",
+      "--disable-setuid-sandbox"
+    ],
+    "include": [
+      "/",
+      "/3P5S1",
+      "/I85CG",
+      "/E5D3A"
+    ],
     "timeout": 60000
   }
 }
