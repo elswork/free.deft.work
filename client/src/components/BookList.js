@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBook, faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 
 
@@ -29,6 +31,7 @@ function BookList({ auth, db, storage }) {
   });
   const [imageFile, setImageFile] = useState(null);
   const [editingBookId, setEditingBookId] = useState(null);
+  const history = useHistory();
   
   
 
@@ -139,7 +142,7 @@ function BookList({ auth, db, storage }) {
         <div className="mb-3">
           <input type="file" className="form-control" onChange={handleImageChange} />
         </div>
-        <button type="submit" className="btn btn-primary">{editingBookId ? "Actualizar Libro" : "Añadir Libro"}</button>
+        <button type="submit" className="btn btn-primary">{editingBookId ? <><FontAwesomeIcon icon={faSave} /> Actualizar Libro</> : <><FontAwesomeIcon icon={faPlus} /> Añadir Libro</>}</button>
         {editingBookId && (
           <button type="button" className="btn btn-secondary ms-2" onClick={() => {
             setEditingBookId(null);
@@ -153,7 +156,7 @@ function BookList({ auth, db, storage }) {
               imageUrl: '',
             });
             setImageFile(null);
-          }}>Cancelar Edición</button>
+          }}><FontAwesomeIcon icon={faTimes} /> Cancelar Edición</button>
         )}
       </form>
 
@@ -176,12 +179,12 @@ function BookList({ auth, db, storage }) {
                 <h5 className="card-title">{book.title}</h5>
                 <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>
                 <p className="card-text">Estado: {book.status}</p>
-                <p className="card-text"><strong>ID Web:</strong> <Link to={`/${book.webId}`}>{book.webId}</Link></p>
+                <p className="card-text"><strong>ID Web:</strong> <button className="btn btn-info btn-sm" onClick={() => history.push(`/${book.webId}`)}><FontAwesomeIcon icon={faExternalLinkAlt} /> {book.webId}</button></p>
                 
                 {auth.currentUser && auth.currentUser.uid === book.ownerId ? (
                   <div className="d-flex justify-content-between mt-3">
-                    <button className="btn btn-warning btn-sm" onClick={() => handleEditClick(book)}>Editar</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDeleteClick(book.id, book.imageUrl)}>Eliminar</button>
+                    <button className="btn btn-warning btn-sm" onClick={() => handleEditClick(book)}><FontAwesomeIcon icon={faEdit} /> Editar</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDeleteClick(book.id, book.imageUrl)}><FontAwesomeIcon icon={faTrashAlt} /> Eliminar</button>
                   </div>
                 ) : (
                   auth.currentUser && (

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPrint } from '@fortawesome/free-solid-svg-icons';
+import { faPrint, faPaperPlane, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { Helmet } from 'react-helmet';
 
 
 
@@ -101,6 +102,23 @@ function BookDetail({ db, auth }) {
     }
   };
 
+  const handleDeleteComment = async (commentId, commentUserId) => {
+    if (!auth.currentUser) return;
+
+    // Solo el autor del comentario o el propietario del libro pueden eliminarlo
+    if (auth.currentUser.uid === commentUserId || (book && auth.currentUser.uid === book.ownerId)) {
+      if (window.confirm("¿Estás seguro de que quieres eliminar este comentario?")) {
+        try {
+          await deleteDoc(doc(db, "forumEntries", commentId));
+        } catch (error) {
+          console.error("Error eliminando comentario:", error);
+        }
+      }
+    } else {
+      alert("No tienes permiso para eliminar este comentario.");
+    }
+  };
+
   if (loading) {
     return <div className="text-center mt-5">Cargando libro...</div>;
   }
@@ -115,6 +133,23 @@ function BookDetail({ db, auth }) {
 
   return (
     <div className="container mt-5">
+      <Helmet>
+        {book && (
+          <>
+            <title>{book.title} - free.deft.work</title>
+            <meta name="description" content={book.description} />
+            <meta property="og:title" content={book.title} />
+            <meta property="og:description" content={book.description} />
+            <meta property="og:image" content={book.imageUrl} />
+            <meta property="og:url" content={`https://free.deft.work/${book.webId}`} />
+            <meta property="og:type" content="book" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content={book.title} />
+            <meta name="twitter:description" content={book.description} />
+            <meta name="twitter:image" content={book.imageUrl} />
+          </>
+        )}
+      </Helmet>
       <div className="card p-4 shadow-sm mb-4">
         <h2 className="card-title text-center mb-4">{book.title}</h2>
         <div className="row">
@@ -134,10 +169,16 @@ function BookDetail({ db, auth }) {
 
       <div className="card p-4 shadow-sm mb-4">
         <h3 className="mb-3">Etiqueta Imprimible</h3>
-        <div id="printable-label" className="text-center p-3" style={{ border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#fff' }} ref={componentRef}>
-          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://free.deft.work/${book.webId}`} alt="QR Code" />
-          <p className="mt-3 mb-0" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>free.deft.work/</p>
-          <p className="mt-3 mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold' }}>{book.webId}</p>
+        <div id="printable-label" className="text-center p-3" style={{ border: '6px solid black', borderRadius: '5px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', width: 'fit-content', margin: '0 auto', gap: '0px' }} ref={componentRef}>
+          {book ? (
+            <>
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://free.deft.work/${book.webId}`} alt="QR Code" width="128" height="128" />
+              <p className="mb-0" style={{ fontSize: '1.2rem', fontWeight: 'bold', lineHeight: '1.2' }}>free.deft.work/</p>
+              <p className="mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold', marginTop: '-10px' }}>{book.webId}</p>
+            </>
+          ) : (
+            <p>Cargando etiqueta...</p>
+          )}
         </div>
         <button className="btn btn-secondary mt-3" onClick={handlePrint} disabled={!book}><FontAwesomeIcon icon={faPrint} /> Imprimir Etiqueta</button>
       </div>
@@ -152,6 +193,9 @@ function BookDetail({ db, auth }) {
               <div key={entry.id} className="mb-2 pb-2 border-bottom">
                 <p className="mb-0"><strong>{entry.userName} {book.ownerId === entry.userId && <span className="badge bg-info">Propietario</span>}</strong> ({entry.timestamp?.toDate().toLocaleString()}):</p>
                 <p className="mb-0">{entry.text}</p>
+                {auth.currentUser && (auth.currentUser.uid === entry.userId || (book && auth.currentUser.uid === book.ownerId)) && (
+                  <button className="btn btn-danger btn-sm mt-1" onClick={() => handleDeleteComment(entry.id, entry.userId)}><FontAwesomeIcon icon={faTrashAlt} /> Eliminar</button>
+                )}
               </div>
             ))
           )}
@@ -169,7 +213,7 @@ function BookDetail({ db, auth }) {
                 required
               ></textarea>
             </div>
-            <button type="submit" className="btn btn-primary">Enviar Entrada</button>
+            <button type="submit" className="btn btn-primary"><FontAwesomeIcon icon={faPaperPlane} /> Enviar Entrada</button>
           </form>
         ) : (
           <p className="text-center">Inicia sesión para participar en el foro.</p>
@@ -180,5 +224,3 @@ function BookDetail({ db, auth }) {
 }
 
 export default BookDetail;
-
-

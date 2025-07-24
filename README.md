@@ -1,6 +1,6 @@
 # ¡Bienvenido a Free.Deft.Work!
 
-![Free Deft Work](https://raw.githubusercontent.com/elswork/free.deft.work/main/public/logo.png)
+![Free Deft Work](https://raw.githubusercontent.com/elswork/free.deft.work/main/public/logo512.webp)
 
 ## Conecta y Comparte: El Poder de un Libro Viajero
 
@@ -100,6 +100,8 @@ Si deseas contribuir a este proyecto, por favor, sigue estos pasos:
 ## Licencia
 
 Este proyecto está bajo la licencia MIT. Consulta el fichero `LICENSE` para más detalles.
+
+## Financiamiento y Donaciones
 
 **[¡Patrocíname!](https://github.com/sponsors/elswork) Juntos seremos imparables.**
 
