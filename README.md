@@ -1,6 +1,6 @@
 # ¡Bienvenido a Free.Deft.Work!
 
-![Free Deft Work](https://raw.githubusercontent.com/elswork/free.deft.work/main/public/logo512.webp)
+![Free Deft Work](https://raw.githubusercontent.com/elswork/free.deft.work/refs/heads/main/client/public/logo192.webp)
 
 ## Conecta y Comparte: El Poder de un Libro Viajero
 

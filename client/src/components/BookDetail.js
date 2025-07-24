@@ -162,19 +162,18 @@ function BookDetail({ db, auth }) {
             <p className="card-text"><strong>Género:</strong> {book.genre}</p>
             <p className="card-text"><strong>Descripción:</strong> {book.description}</p>
             <p className="card-text"><strong>Estado:</strong> {book.status}</p>
-            <p className="card-text"><strong>ID Web:</strong> {book.webId}</p>
           </div>
         </div>
       </div>
 
       <div className="card p-4 shadow-sm mb-4">
-        <h3 className="mb-3">Etiqueta Imprimible</h3>
+        <h3 className="mb-3">ID Web</h3>
         <div id="printable-label" className="text-center p-3" style={{ border: '6px solid black', borderRadius: '5px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', width: 'fit-content', margin: '0 auto', gap: '0px' }} ref={componentRef}>
           {book ? (
             <>
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://free.deft.work/${book.webId}`} alt="QR Code" width="128" height="128" />
               <p className="mb-0" style={{ fontSize: '1.2rem', fontWeight: 'bold', lineHeight: '1.2' }}>free.deft.work/</p>
-              <p className="mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold', marginTop: '-10px' }}>{book.webId}</p>
+              <p className="mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold', marginTop: '-14px' }}>{book.webId}</p>
             </>
           ) : (
             <p>Cargando etiqueta...</p>
