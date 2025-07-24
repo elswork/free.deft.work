@@ -178,7 +178,7 @@ function BookDetail({ db, auth }) {
                 includeMargin={true}
               />
               <p className="mb-0" style={{ fontSize: '1.2rem', fontWeight: 'bold', lineHeight: '1.2' }}>free.deft.work/</p>
-              <p className="mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold', marginTop: '-14px' }}>{book.webId}</p>
+              <p className="mb-0" style={{ fontSize: '3.2rem', fontWeight: 'bold', marginTop: '-15px' }}>{book.webId}</p>
             </>
           ) : (
             <p>Cargando etiqueta...</p>
