@@ -5,7 +5,8 @@ import { getAuth } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPrint, faPaperPlane, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { Helmet } from 'react-helmet';
-import { QRCode } from 'qrcode.react';
+import { useReactToPrint } from 'react-to-print';
+import { QRCodeSVG } from 'qrcode.react';
 
 
 
@@ -18,28 +19,9 @@ function BookDetail({ db, auth }) {
   const [newEntryText, setNewEntryText] = useState('');
 
   const componentRef = useRef();
-
-  const handlePrint = () => {
-    const printContent = componentRef.current;
-    if (printContent) {
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write('<html><head><title>Imprimir Etiqueta</title>');
-      // Opcional: Copiar estilos CSS para que la impresión se vea similar a la pantalla
-      const styles = document.querySelectorAll('link[rel="stylesheet"], style');
-      styles.forEach(style => {
-        printWindow.document.write(style.outerHTML);
-      });
-      printWindow.document.write('</head><body>');
-      printWindow.document.write(printContent.innerHTML);
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    } else {
-      console.error("No se encontró contenido para imprimir.");
-    }
-  };
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -172,7 +154,7 @@ function BookDetail({ db, auth }) {
         <div id="printable-label" className="text-center p-3" style={{ border: '6px solid black', borderRadius: '5px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', width: 'fit-content', margin: '0 auto', gap: '0px' }} ref={componentRef}>
           {book ? (
             <>
-              <QRCode
+              <QRCodeSVG
                 value={`https://free.deft.work/${book.webId}`}
                 size={128}
                 includeMargin={true}
