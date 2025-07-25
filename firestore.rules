@@ -18,6 +18,7 @@ service cloud.firestore {
     match /forumEntries/{entryId} {
       allow read;
       allow create: if request.auth != null;
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.bookOwnerId);
     }
 
     // Reglas para la colección de chats y subcolección de mensajes

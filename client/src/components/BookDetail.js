@@ -95,6 +95,7 @@ function BookDetail({ db, auth }) {
         userName: auth.currentUser.displayName || auth.currentUser.email,
         text: newEntryText,
         timestamp: serverTimestamp(),
+        bookOwnerId: book.ownerId, // Añadir el ID del propietario del libro
       });
       setNewEntryText('');
     } catch (error) {
@@ -117,6 +118,17 @@ function BookDetail({ db, auth }) {
     } else {
       alert("No tienes permiso para eliminar este comentario.");
     }
+  };
+
+  // Función para renderizar texto con enlaces clicables
+  const renderTextWithLinks = (text) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, index) => {
+      if (part.match(urlRegex)) {
+        return <a key={index} href={part} target="_blank" rel="noopener noreferrer">{part}</a>;
+      }
+      return part;
+    });
   };
 
   if (loading) {
@@ -198,7 +210,7 @@ function BookDetail({ db, auth }) {
             forumEntries.map((entry) => (
               <div key={entry.id} className="mb-2 pb-2 border-bottom">
                 <p className="mb-0"><strong>{book.ownerId === entry.userId && <span className="badge bg-info">Propietario</span>} {entry.userName}</strong> ({entry.timestamp?.toDate().toLocaleString()}):</p>
-                <p className="mb-0">{entry.text}</p>
+                <p className="mb-0">{renderTextWithLinks(entry.text)}</p>
                 {auth.currentUser && (auth.currentUser.uid === entry.userId || (book && auth.currentUser.uid === book.ownerId)) && (
                   <button className="btn btn-danger btn-sm mt-1" onClick={() => handleDeleteComment(entry.id, entry.userId)}><FontAwesomeIcon icon={faTrashAlt} /> Eliminar</button>
                 )}
