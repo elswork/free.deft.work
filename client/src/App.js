@@ -22,6 +22,7 @@ const provider = new GoogleAuthProvider();
 
 function App() {
   const [user, setUser] = useState(null);
+  const [showWelcomeSection, setShowWelcomeSection] = useState(true); // Nuevo estado para la sección de bienvenida
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -83,10 +84,20 @@ function App() {
                     <BookList auth={auth} db={db} storage={storage} />
                   </div>
                 ) : (
-                  <div className="text-center">
-                    <p className="lead">Por favor, inicia sesión para continuar.</p>
-                    <button className="btn btn-primary" onClick={handleSignIn}><FontAwesomeIcon icon={faGoogle} /> Iniciar Sesión con Google</button>
-                  </div>
+                  <>
+                    {showWelcomeSection && (
+                      <div className="card p-4 shadow-sm mx-auto mb-4" style={{ maxWidth: '600px' }}>
+                        <h2 className="card-title text-center mb-4">📚 Free Deft Work: El Poder de un Libro Viajero 🚀</h2>
+                        <p className="text-justify">¡Bienvenido a <strong>Free Deft Work: El Poder de un Libro Viajero</strong>! Esta plataforma transforma la forma en que interactúas con los libros, convirtiendo cada ejemplar en un puente entre personas. Aquí, cada libro que compartes, equipado con su <strong>código QR único</strong> 🏷️, se suma a una red de conexiones que se extiende con cada paso de mano en mano, ya sea por donación, préstamo o como un regalo. Podrás seguir el recorrido de tus libros 🗺️, descubrir quién los ha leído y las impresiones que han dejado. 💖</p>
+                        <p className="text-justify">Para comenzar, es muy sencillo: <strong>da de alta tu libro en nuestro formulario web</strong> 📝. Una vez registrado, <strong>imprime las etiquetas con el código QR</strong> 🖨️ que el sistema generará y <strong>pégaselas directamente al libro</strong>. Así de fácil, tu libro estará listo para viajar y compartir su historia. 📖 Nuestra aplicación web está diseñada para hacer que la gestión y el intercambio de libros sean sencillos y enriquecedores. Simplemente escanea el código QR de un libro para acceder a todos sus detalles y su historial de viajes. 📲 Además, te invitamos a unirte a nuestra <strong>comunidad vibrante</strong> en el foro interactivo. 🗣️ Allí podrás compartir tus ideas, debatir sobre lecturas, descubrir nuevos títulos y conectar con otros amantes de los libros, extendiendo la vida de cada ejemplar más allá de sus páginas. ✨</p>
+                        <button className="btn btn-primary w-100 mt-3" onClick={() => setShowWelcomeSection(false)}>Entendido 👍</button>
+                      </div>
+                    )}
+                    <div className="text-center">
+                      <p className="lead">Por favor, inicia sesión para continuar.</p>
+                      <button className="btn btn-primary" onClick={handleSignIn}><FontAwesomeIcon icon={faGoogle} /> Iniciar Sesión con Google</button>
+                    </div>
+                  </>
                 )}
               </>
             )} />
