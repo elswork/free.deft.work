@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserPlus, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 
 function AuthForm({ auth }) {
   const [email, setEmail] = useState('');
@@ -26,6 +27,18 @@ function AuthForm({ auth }) {
     } catch (err) {
       setError(err.message);
       console.error("Error de autenticación:", err);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      history.push('/'); // Redirigir a la página principal después del inicio de sesión con Google
+    } catch (err) {
+      setError(err.message);
+      console.error("Error de autenticación con Google:", err);
     }
   };
 
@@ -68,6 +81,15 @@ function AuthForm({ auth }) {
             <>¿No tienes una cuenta? <button className="btn btn-link p-0" onClick={() => setIsRegistering(true)}>Registrarse</button></>
           )}
         </p>
+        <hr className="my-4" />
+        <button
+          type="button"
+          className="btn btn-danger w-100 d-flex align-items-center justify-content-center"
+          onClick={handleGoogleSignIn}
+        >
+          <FontAwesomeIcon icon={faGoogle} className="me-2" />
+          Iniciar Sesión con Google
+        </button>
       </div>
     </div>
   );
