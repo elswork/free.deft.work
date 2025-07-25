@@ -3,10 +3,11 @@ import { useParams } from 'react-router-dom';
 import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPrint, faPaperPlane, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPrint, faPaperPlane, faTrashAlt, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { Helmet } from 'react-helmet';
 import { useReactToPrint } from 'react-to-print';
 import { QRCodeSVG } from 'qrcode.react';
+import html2canvas from 'html2canvas';
 
 
 
@@ -22,6 +23,22 @@ function BookDetail({ db, auth }) {
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
+
+  const handleDownload = () => {
+    if (componentRef.current) {
+      html2canvas(componentRef.current).then(canvas => {
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.href = pngFile;
+        downloadLink.download = `etiqueta-${book.webId}.png`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      });
+    } else {
+      console.error("No se encontró el contenido para descargar.");
+    }
+  };
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -166,7 +183,10 @@ function BookDetail({ db, auth }) {
             <p>Cargando etiqueta...</p>
           )}
         </div>
-        <button className="btn btn-secondary mt-3" onClick={handlePrint} disabled={!book}><FontAwesomeIcon icon={faPrint} /> Imprimir Etiqueta</button>
+        <div className="d-flex justify-content-center gap-2 mt-3">
+          <button className="btn btn-secondary" onClick={handlePrint} disabled={!book}><FontAwesomeIcon icon={faPrint} /> Imprimir Etiqueta</button>
+          <button className="btn btn-primary" onClick={handleDownload} disabled={!book}><FontAwesomeIcon icon={faDownload} /> Descargar Etiqueta</button>
+        </div>
       </div>
 
       <div className="card p-4 shadow-sm">
@@ -177,7 +197,7 @@ function BookDetail({ db, auth }) {
           ) : (
             forumEntries.map((entry) => (
               <div key={entry.id} className="mb-2 pb-2 border-bottom">
-                <p className="mb-0"><strong>{entry.userName} {book.ownerId === entry.userId && <span className="badge bg-info">Propietario</span>}</strong> ({entry.timestamp?.toDate().toLocaleString()}):</p>
+                <p className="mb-0"><strong>{book.ownerId === entry.userId && <span className="badge bg-info">Propietario</span>} {entry.userName}</strong> ({entry.timestamp?.toDate().toLocaleString()}):</p>
                 <p className="mb-0">{entry.text}</p>
                 {auth.currentUser && (auth.currentUser.uid === entry.userId || (book && auth.currentUser.uid === book.ownerId)) && (
                   <button className="btn btn-danger btn-sm mt-1" onClick={() => handleDeleteComment(entry.id, entry.userId)}><FontAwesomeIcon icon={faTrashAlt} /> Eliminar</button>

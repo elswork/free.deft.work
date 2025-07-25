@@ -15,10 +15,7 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "/:webId",
-        "destination": "/:webId.html"
-      },
+      
       {
         "source": "**",
         "destination": "/index.html"
