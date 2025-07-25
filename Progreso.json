@@ -1,44 +1,194 @@
 [
   {
-    "fecha": "2025-07-24",
-    "nombre": "Activar Login de Usuario y Contraseña",
-    "descripcion": "Habilitar el método de inicio de sesión de correo electrónico/contraseña en Firebase y añadir la lógica de código necesaria.",
-    "estado": "Completado: Implementación y Despliegue"
+    "fecha_creacion": "2025-07-22T13:35:00",
+    "nombre": "Brainstorming para web de préstamo de libros",
+    "descripcion": "Realizar un brainstorming para definir los requisitos y consideraciones para crear una web de préstamo de libros con gestión de usuarios y base de datos en Firebase.",
+    "estado": "pendiente"
   },
   {
-    "fecha": "2025-07-24",
-    "nombre": "Estilizar Botón de Autenticación",
-    "descripcion": "Aplicar estilos de botón e icono al enlace de Iniciar Sesión / Registrarse.",
-    "estado": "Completado"
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Mejorar diseño web",
+    "descripcion": "Transformar la interfaz actual en un diseño moderno, elegante y responsive usando Bootstrap y refactorizando componentes.",
+    "estado": "Realizado"
   },
   {
-    "fecha": "2025-07-24",
-    "nombre": "Integrar Iconos de Font Awesome",
-    "descripcion": "Instalar Font Awesome y aplicar iconos a los botones de navegación, autenticación y el botón de imprimir etiqueta.",
-    "estado": "Completado"
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Cambiar título de la página",
+    "descripcion": "Cambiar el título de la página de 'Firebase React App' a 'Free Deft Work' en public/index.html y src/App.js.",
+    "estado": "Realizado"
   },
   {
-    "fecha": "2025-07-24",
-    "nombre": "Añadir Botón de Eliminar Comentario",
-    "descripcion": "Añadir un botón para eliminar comentarios en BookDetail.js, visible para el autor o el propietario del libro.",
-    "estado": "Completado"
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Gestión de perfiles de usuario",
+    "descripcion": "Implementar la funcionalidad para que los usuarios puedan ver y editar su perfil (nombre de usuario, foto de perfil, ubicación, etc.) en Firestore y Storage.",
+    "estado": "Realizado"
   },
   {
-    "fecha": "2025-07-24",
-    "nombre": "Ajustar Estilo de Etiqueta Imprimible",
-    "descripcion": "Ajustar el espaciado y añadir un borde negro de 6px a la etiqueta imprimible en BookDetail.js.",
-    "estado": "Completado"
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Implementar funcionalidades de actualizar y eliminar libros",
+    "descripcion": "Añadir la capacidad de editar y eliminar libros de Firestore, incluyendo la gestión de imágenes en Storage.",
+    "estado": "Realizado"
   },
   {
-    "fecha": "2025-07-24",
-    "nombre": "Implementar Vista Previa para Compartir (Open Graph/Twitter Card)",
-    "descripcion": "Añadir metaetiquetas Open Graph y Twitter Card dinámicamente en BookDetail.js para mejorar la vista previa al compartir enlaces de libros.",
-    "estado": "Pendiente: Verificación con Twitter Card Validator"
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Implementar sistema de mensajería",
+    "descripcion": "Crear un componente de chat en React e integrarlo con la lista de libros para permitir la comunicación entre usuarios sobre un libro específico.",
+    "estado": "Realizado"
   },
   {
-    "fecha": "2025-07-24",
-    "nombre": "Corregir Impresión de QR",
-    "descripcion": "Asegurar que la imagen del QR se muestre correctamente en la vista previa de impresión.",
-    "estado": "Pendiente: Verificación"
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Implementar reseñas y calificaciones",
+    "descripcion": "Permitir a los usuarios calificar y dejar reseñas de libros y otros usuarios, almacenándolas en Firestore y mostrándolas en la interfaz.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha": "2025-07-22 12:00:00",
+    "nombre": "Traducir interfaz al castellano",
+    "descripcion": "Traducir todos los elementos y mensajes de la interfaz de usuario al castellano, excepto 'Free Deft Work'.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T00:00:00",
+    "nombre": "Generar código único para libros",
+    "descripcion": "Asociar un código único alfanumérico de 5 caracteres (mayúsculas) a cada libro para su identificación web (ej. VWXYZ).",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Eliminar la funcionalidad de chat",
+    "descripcion": "Eliminar los componentes y la lógica de chat del proyecto.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Eliminar la funcionalidad de reseñas",
+    "descripcion": "Eliminar los componentes y la lógica de reseñas del proyecto.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Implementar enrutamiento para páginas de libros",
+    "descripcion": "Configurar el enrutamiento para que las URLs con webId lleven a la página de detalles del libro.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Aplicar textura de página de libro",
+    "descripcion": "Aplicar una textura de página de libro amarillenta al fondo de la web.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Añadir barra de búsqueda de libros",
+    "descripcion": "Añadir una barra de búsqueda para filtrar libros por título o autor.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Subir logotipos",
+    "descripcion": "Subir los logotipos proporcionados por el usuario a la carpeta de imágenes del proyecto.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Sustituir el icono de la web",
+    "descripcion": "Sustituir el icono de la web por uno nuevo proporcionado por el usuario.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Clarificar visibilidad de webId y enlace de libro",
+    "descripcion": "Aclarar si un lector puede ver el webId y el enlace del libro de otro propietario.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Hacer el logotipo clicable a la página principal",
+    "descripcion": "Configurar el logotipo para que al hacer clic en él, el usuario sea redirigido a la página principal.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Añadir foro en la página de detalles del libro",
+    "descripcion": "Implementar un foro en la página de detalles del libro para que propietarios y prestatarios puedan escribir entradas.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Crear índice de Firestore para entradas del foro",
+    "descripcion": "Crear el índice compuesto necesario en Firestore para la consulta de entradas del foro por webId y timestamp.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Mostrar etiqueta 'Propietario' en entradas del foro",
+    "descripcion": "Mostrar una etiqueta 'Propietario' junto al nombre del autor de una entrada del foro si es el dueño del libro.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver problema de índice de Firestore y etiqueta 'Propietario'",
+    "descripcion": "Asegurar que el índice compuesto de Firestore esté correctamente definido y que la etiqueta 'Propietario' se muestre correctamente.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Añadir etiqueta imprimible con QR y URL del libro",
+    "descripcion": "Añadir una sección en la página de detalles del libro con un QR y la URL del libro, y un botón para imprimirla.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta",
+    "descripcion": "Refactorizar la función de impresión para evitar la manipulación directa del DOM y resolver el error de React.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (segundo intento)",
+    "descripcion": "Eliminar printWindow.close() de la función handlePrint para evitar conflictos con React.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (tercer intento)",
+    "descripcion": "Eliminar document.body.innerHTML = originalContents; y window.location.reload(); de la función handlePrint.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (cuarto intento)",
+    "descripcion": "Añadir printWindow.close() a la función handlePrint, pero envuelto en un setTimeout.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (quinto intento)",
+    "descripcion": "Eliminar setTimeout de printWindow.close() de la función handlePrint.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (sexto intento)",
+    "descripcion": "Eliminar printWindow.close() de la función handlePrint.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (séptimo intento)",
+    "descripcion": "Utilizar react-to-print para manejar la impresión de forma segura.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Resolver error de React al imprimir etiqueta (octavo intento)",
+    "descripcion": "Refactorizar la función de impresión para usar un iframe temporal y evitar conflictos con React.",
+    "estado": "Realizado"
+  },
+  {
+    "fecha_creacion": "2025-07-23T10:00:00",
+    "nombre": "Cambiar URL del QR y en URL de la web",
+    "descripcion": "Cambiar la URL base del QR y la URL mostrada a https://free.deft.work/, y reemplazar la API de Google Charts por una alternativa.",
+    "estado": "Realizado"
   }
 ]
