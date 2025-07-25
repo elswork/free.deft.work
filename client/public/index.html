@@ -6,10 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <meta
-      name="free.deft.work"
-      content="Dona regala o comparte tus libros con nuestro sistema"
-    />
+    <meta name="description" content="Dona, regala o comparte tus libros con nuestro sistema" />
+    <meta property="og:title" content="Free Deft Work" />
+    <meta property="og:description" content="Dona, regala o comparte tus libros con nuestro sistema" />
+    <meta property="og:image" content="%PUBLIC_URL%/logo192.webp" />
+    <meta property="og:url" content="https://free.deft.work" />
+    <meta property="og:type" content="book" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Free Deft Work" />
+    <meta name="twitter:description" content="Dona, regala o comparte tus libros con nuestro sistema" />
+    <meta name="twitter:image" content="%PUBLIC_URL%/logo192.webp" />
+    <meta name="twitter:url" content="https://free.deft.work" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.webp" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
@@ -26,6 +33,16 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>Free Deft Work</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FLXLBP0TW"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-1FLXLBP0TW');
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
