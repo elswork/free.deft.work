@@ -6,12 +6,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faSignInAlt, faSignOutAlt, faUser, faInfoCircle, faBook, faExternalLinkAlt, faPaperPlane, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUser, faInfoCircle, faBook, faExternalLinkAlt, faPaperPlane, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch, faBell } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
 import BookDetail from './components/BookDetail';
 import AuthForm from './components/AuthForm'; // Importar el nuevo componente
+import Notifications from './components/Notifications';
 import './App.css';
 
 const app = initializeApp(firebaseConfig);
@@ -23,6 +24,7 @@ const provider = new GoogleAuthProvider();
 function App() {
   const [user, setUser] = useState(null);
   const [showWelcomeSection, setShowWelcomeSection] = useState(true); // Nuevo estado para la sección de bienvenida
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -62,6 +64,15 @@ function App() {
               <li className="nav-item">
                 <a className="btn btn-outline-info mx-1" href="https://github.com/elswork/free.deft.work/blob/main/README.md" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} /> Acerca de</a>
               </li>
+              {user && (
+                <li className="nav-item dropdown">
+                  <button className="btn btn-outline-primary mx-1 dropdown-toggle" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <FontAwesomeIcon icon={faBell} />
+                    {unreadNotifications > 0 && <span className="badge bg-danger ms-1">{unreadNotifications}</span>}
+                  </button>
+                  <Notifications auth={auth} db={db} setUnreadNotifications={setUnreadNotifications} />
+                </li>
+              )}
               {user ? (
                 <li className="nav-item">
                   <button className="btn btn-outline-danger mx-1" onClick={handleSignOut}><FontAwesomeIcon icon={faSignOutAlt} /> Cerrar Sesión</button>
@@ -102,6 +113,7 @@ function App() {
               </>
             )} />
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
+            <Route path="/profile/:userId" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
             <Route path="/:webId" component={() => <BookDetail db={db} auth={auth} />} />
           </Switch>
         </main>

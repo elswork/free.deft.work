@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
+import { useParams, Link } from 'react-router-dom';
+import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc, updateDoc, increment, arrayUnion, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPrint, faPaperPlane, faTrashAlt, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faPrint, faPaperPlane, faTrashAlt, faDownload, faShareAlt } from '@fortawesome/free-solid-svg-icons';
 import { Helmet } from 'react-helmet';
 import { useReactToPrint } from 'react-to-print';
 import { QRCodeSVG } from 'qrcode.react';
@@ -18,6 +18,7 @@ function BookDetail({ db, auth }) {
   const [error, setError] = useState(null);
   const [forumEntries, setForumEntries] = useState([]);
   const [newEntryText, setNewEntryText] = useState('');
+  const [ownerName, setOwnerName] = useState('');
 
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
@@ -47,7 +48,26 @@ function BookDetail({ db, auth }) {
         const q = query(collection(db, "books"), where("webId", "==", webId));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
-          setBook(querySnapshot.docs[0].data());
+          const bookDoc = querySnapshot.docs[0];
+          const bookData = bookDoc.data();
+          setBook(bookData);
+
+          if (bookData.ownerId) {
+            const ownerRef = doc(db, "users", bookData.ownerId);
+            const ownerSnap = await getDoc(ownerRef);
+            if (ownerSnap.exists()) {
+              setOwnerName(ownerSnap.data().username);
+            }
+          }
+          
+          // Increment view count only if user is authenticated
+          if (auth.currentUser) {
+            const bookRef = doc(db, "books", bookDoc.id);
+            await updateDoc(bookRef, {
+              views: increment(1)
+            });
+          }
+
         } else {
           setError("Libro no encontrado.");
         }
@@ -62,7 +82,7 @@ function BookDetail({ db, auth }) {
     if (webId) {
       fetchBook();
     }
-  }, [webId, db]);
+  }, [webId, db, auth.currentUser]);
 
   
 
@@ -97,6 +117,22 @@ function BookDetail({ db, auth }) {
         timestamp: serverTimestamp(),
         bookOwnerId: book.ownerId, // Añadir el ID del propietario del libro
       });
+
+      // Send notification to book owner
+      if (book.ownerId !== auth.currentUser.uid) {
+        const ownerRef = doc(db, "users", book.ownerId);
+        await updateDoc(ownerRef, {
+          notifications: arrayUnion({
+            type: 'comment',
+            bookTitle: book.title,
+            bookWebId: webId,
+            commenterName: auth.currentUser.displayName || auth.currentUser.email,
+            timestamp: new Date(),
+            read: false
+          })
+        });
+      }
+
       setNewEntryText('');
     } catch (error) {
       console.error("Error adding forum entry:", error);
@@ -174,6 +210,10 @@ function BookDetail({ db, auth }) {
             <p className="card-text"><strong>Género:</strong> {book.genre}</p>
             <p className="card-text"><strong>Descripción:</strong> {book.description}</p>
             <p className="card-text"><strong>Estado:</strong> {book.status}</p>
+            <p className="card-text"><strong>Visitas:</strong> {book.views || 0}</p>
+            {book.ownerId && ownerName && (
+              <p className="card-text"><strong>Propietario:</strong> <Link to={`/profile/${book.ownerId}`}>{ownerName}</Link></p>
+            )}
           </div>
         </div>
       </div>
@@ -198,6 +238,15 @@ function BookDetail({ db, auth }) {
         <div className="d-flex justify-content-center gap-2 mt-3">
           <button className="btn btn-secondary" onClick={handlePrint} disabled={!book}><FontAwesomeIcon icon={faPrint} /> Imprimir Etiqueta</button>
           <button className="btn btn-primary" onClick={handleDownload} disabled={!book}><FontAwesomeIcon icon={faDownload} /> Descargar Etiqueta</button>
+          <button className="btn btn-info" onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(window.location.href);
+              alert("¡Enlace copiado al portapapeles!");
+            } catch (err) {
+              console.error("Error al copiar el enlace: ", err);
+              alert("No se pudo copiar el enlace. Por favor, inténtalo manualmente.");
+            }
+          }}><FontAwesomeIcon icon={faShareAlt} /> Compartir</button>
         </div>
       </div>
 

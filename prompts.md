@@ -1,8 +1,10 @@
-abre el directorio free.deft.work
+abre el directorio docker/free.deft.work
 
-Tienes el Gemini API Key en el fichero .env /home/pirate/free.deft.work/client/.env
+Tienes el Gemini API Key en el fichero .env /home/pirate/docker/free.deft.work/client/.env
 
 el proyecto se llama free-deft-work  el token de autenticación esta en el fichero .env 
+
+Tenemos pendiente todo lo que pone en @docker/free.deft.work/Todo.md podemos hacerlo paso a paso en el orden que consideres oportuno 
 
 En el fichero prompts.md esta almacenadas las preguntas y respuestas que hemos ido realizando en el proyecto, por favor, ten en cuenta esta información y actualiza este fichero con las nuevas preguntas y respuestas que vayamos generando.
 

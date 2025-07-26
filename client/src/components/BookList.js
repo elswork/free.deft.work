@@ -3,7 +3,7 @@ import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Link, useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBook, faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faBook, faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch, faShareAlt } from '@fortawesome/free-solid-svg-icons';
 
 
 
@@ -140,6 +140,13 @@ function BookList({ auth, db, storage }) {
           <textarea name="description" className="form-control" placeholder="Descripción" value={newBook.description} onChange={handleInputChange}></textarea>
         </div>
         <div className="mb-3">
+          <label htmlFor="status" className="form-label">Estado</label>
+          <select name="status" id="status" className="form-control" value={newBook.status} onChange={handleInputChange}>
+            <option value="Disponible">Disponible</option>
+            <option value="De Viaje">De Viaje</option>
+          </select>
+        </div>
+        <div className="mb-3">
           <input type="file" className="form-control" onChange={handleImageChange} />
         </div>
         <button type="submit" className="btn btn-primary">{editingBookId ? <><FontAwesomeIcon icon={faSave} /> Actualizar Libro</> : <><FontAwesomeIcon icon={faPlus} /> Añadir Libro</>}</button>
@@ -179,12 +186,22 @@ function BookList({ auth, db, storage }) {
                 <h5 className="card-title">{book.title}</h5>
                 <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>
                 <p className="card-text">Estado: {book.status}</p>
+                <p className="card-text">Visitas: {book.views || 0}</p>
                 <p className="card-text"><strong>ID Web:</strong> <button className="btn btn-info btn-sm" onClick={() => history.push(`/${book.webId}`)}><FontAwesomeIcon icon={faExternalLinkAlt} /> {book.webId}</button></p>
                 
                 {auth.currentUser && auth.currentUser.uid === book.ownerId ? (
                   <div className="d-flex justify-content-between mt-3">
                     <button className="btn btn-warning btn-sm" onClick={() => handleEditClick(book)}><FontAwesomeIcon icon={faEdit} /> Editar</button>
                     <button className="btn btn-danger btn-sm" onClick={() => handleDeleteClick(book.id, book.imageUrl)}><FontAwesomeIcon icon={faTrashAlt} /> Eliminar</button>
+                    <button className="btn btn-info btn-sm" onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(`${window.location.origin}/${book.webId}`);
+                        alert("¡Enlace copiado al portapapeles!");
+                      } catch (err) {
+                        console.error("Error al copiar el enlace: ", err);
+                        alert("No se pudo copiar el enlace. Por favor, inténtalo manualmente.");
+                      }
+                    }}><FontAwesomeIcon icon={faShareAlt} /> Compartir</button>
                   </div>
                 ) : (
                   auth.currentUser && (

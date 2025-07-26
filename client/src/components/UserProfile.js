@@ -1,45 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useParams } from 'react-router-dom';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-function UserProfile({ user, db, storage }) {
-  const [profile, setProfile] = useState({
-    username: '',
-    location: '',
-    bio: '',
-    profilePictureUrl: '',
-  });
+function UserProfile({ auth, db, storage }) {
+  const { userId } = useParams();
+  const [profile, setProfile] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notification, setNotification] = useState({ type: '', message: '' });
+
+  const isCurrentUserProfile = auth.currentUser && auth.currentUser.uid === userId;
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user) {
-        try {
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            setProfile(docSnap.data());
-          } else {
-            // If no profile exists, initialize with user's display name if available
-            setProfile({
-              username: user.displayName || '',
-              location: '',
-              bio: '',
-              profilePictureUrl: user.photoURL || '',
-            });
+      try {
+        setLoading(true);
+        const docRef = doc(db, "users", userId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const profileData = docSnap.data();
+          setProfile(profileData);
+          setFollowersCount(profileData.followers?.length || 0);
+          setFollowingCount(profileData.following?.length || 0);
+
+          if (auth.currentUser) {
+            const currentUserDocRef = doc(db, "users", auth.currentUser.uid);
+            const currentUserDocSnap = await getDoc(currentUserDocRef);
+            if (currentUserDocSnap.exists()) {
+              const currentUserData = currentUserDocSnap.data();
+              setIsFollowing(currentUserData.following?.includes(userId) || false);
+            }
           }
-        } catch (err) {
-          console.error("Error fetching profile:", err);
-          setError("Failed to load profile.");
-        } finally {
-          setLoading(false);
+        } else {
+          setError("User not found.");
         }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+        setError("Failed to load profile.");
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProfile();
-  }, [user, db]);
+
+    if (userId) {
+      fetchProfile();
+    }
+  }, [userId, db, auth.currentUser]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,13 +66,15 @@ function UserProfile({ user, db, storage }) {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+    if (!isCurrentUserProfile) return;
+
     setLoading(true);
     setError(null);
     let newProfilePictureUrl = profile.profilePictureUrl;
 
     if (imageFile) {
       try {
-        const storageRef = ref(storage, `profile_pictures/${user.uid}/${imageFile.name}`);
+        const storageRef = ref(storage, `profile_pictures/${userId}/${imageFile.name}`);
         await uploadBytes(storageRef, imageFile);
         newProfilePictureUrl = await getDownloadURL(storageRef);
       } catch (err) {
@@ -72,13 +86,52 @@ function UserProfile({ user, db, storage }) {
     }
 
     try {
-      await setDoc(doc(db, "users", user.uid), { ...profile, profilePictureUrl: newProfilePictureUrl }, { merge: true });
-      alert("Profile saved successfully!");
+      await setDoc(doc(db, "users", userId), { ...profile, profilePictureUrl: newProfilePictureUrl }, { merge: true });
+      setNotification({ type: 'success', message: '¡Perfil guardado con éxito!' });
     } catch (err) {
       console.error("Error saving profile:", err);
-      setError("Failed to save profile.");
+      setNotification({ type: 'danger', message: 'Error al guardar el perfil.' });
     } finally {
       setLoading(false);
+      setTimeout(() => setNotification({ type: '', message: '' }), 5000);
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!auth.currentUser) {
+      alert("You must be logged in to follow users.");
+      return;
+    }
+    if (isCurrentUserProfile) return;
+
+    const currentUserRef = doc(db, "users", auth.currentUser.uid);
+    const userToFollowRef = doc(db, "users", userId);
+
+    try {
+      if (isFollowing) {
+        // Unfollow
+        await updateDoc(currentUserRef, {
+          following: arrayRemove(userId)
+        });
+        await updateDoc(userToFollowRef, {
+          followers: arrayRemove(auth.currentUser.uid)
+        });
+        setIsFollowing(false);
+        setFollowersCount(prev => prev - 1);
+      } else {
+        // Follow
+        await updateDoc(currentUserRef, {
+          following: arrayUnion(userId)
+        });
+        await updateDoc(userToFollowRef, {
+          followers: arrayUnion(auth.currentUser.uid)
+        });
+        setIsFollowing(true);
+        setFollowersCount(prev => prev + 1);
+      }
+    } catch (err) {
+      console.error("Error updating follow status:", err);
+      alert("Failed to update follow status.");
     }
   };
 
@@ -89,22 +142,45 @@ function UserProfile({ user, db, storage }) {
   if (error) {
     return <div className="alert alert-danger mt-4">Error: {error}</div>;
   }
+  
+  if (!profile) {
+    return <div className="text-center mt-5">Usuario no encontrado.</div>;
+  }
 
   return (
     <div className="card mt-4 p-4 shadow-sm">
-      <h2 className="card-title text-center mb-4">Perfil de Usuario</h2>
-      <form onSubmit={handleSaveProfile}>
-        <div className="mb-3 text-center">
-          {profile.profilePictureUrl && (
-            <img
-              src={profile.profilePictureUrl}
-              alt="Profile"
-              className="rounded-circle mb-3" // Bootstrap class for circular image
-              style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-            />
-          )}
-          <input type="file" className="form-control" onChange={handleImageChange} />
+      <h2 className="card-title text-center mb-4">Perfil de {profile.username}</h2>
+      {notification.message && (
+        <div className={`alert alert-${notification.type}`}>
+          {notification.message}
         </div>
+      )}
+      <div className="mb-3 text-center">
+        {profile.profilePictureUrl && (
+          <img
+            src={profile.profilePictureUrl}
+            alt="Profile"
+            className="rounded-circle mb-3"
+            style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+          />
+        )}
+      </div>
+      
+      <div className="text-center mb-3">
+        <p><strong>Seguidores:</strong> {followersCount} | <strong>Siguiendo:</strong> {followingCount}</p>
+        {auth.currentUser && !isCurrentUserProfile && (
+          <button onClick={handleFollowToggle} className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`}>
+            {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
+          </button>
+        )}
+      </div>
+
+      <form onSubmit={handleSaveProfile}>
+        {isCurrentUserProfile && (
+            <div className="mb-3 text-center">
+                <input type="file" className="form-control" onChange={handleImageChange} />
+            </div>
+        )}
         <div className="mb-3">
           <label htmlFor="username" className="form-label">Nombre de Usuario</label>
           <input
@@ -115,6 +191,7 @@ function UserProfile({ user, db, storage }) {
             value={profile.username}
             onChange={handleInputChange}
             required
+            disabled={!isCurrentUserProfile}
           />
         </div>
         <div className="mb-3">
@@ -126,6 +203,7 @@ function UserProfile({ user, db, storage }) {
             name="location"
             value={profile.location}
             onChange={handleInputChange}
+            disabled={!isCurrentUserProfile}
           />
         </div>
         <div className="mb-3">
@@ -137,9 +215,12 @@ function UserProfile({ user, db, storage }) {
             value={profile.bio}
             onChange={handleInputChange}
             rows="3"
+            disabled={!isCurrentUserProfile}
           ></textarea>
         </div>
-        <button type="submit" className="btn btn-success w-100" disabled={loading}>Guardar Perfil</button>
+        {isCurrentUserProfile && (
+          <button type="submit" className="btn btn-success w-100" disabled={loading}>Guardar Perfil</button>
+        )}
       </form>
     </div>
   );
