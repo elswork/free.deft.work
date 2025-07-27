@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc, updateDoc, increment, arrayUnion, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPrint, faPaperPlane, faTrashAlt, faDownload, faShareAlt } from '@fortawesome/free-solid-svg-icons';
@@ -19,6 +19,8 @@ function BookDetail({ db, auth }) {
   const [forumEntries, setForumEntries] = useState([]);
   const [newEntryText, setNewEntryText] = useState('');
   const [ownerName, setOwnerName] = useState('');
+  const [ownerFollowersCount, setOwnerFollowersCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
@@ -57,6 +59,16 @@ function BookDetail({ db, auth }) {
             const ownerSnap = await getDoc(ownerRef);
             if (ownerSnap.exists()) {
               setOwnerName(ownerSnap.data().username);
+              setOwnerFollowersCount(ownerSnap.data().followers?.length || 0);
+              // Check if current user is following the owner
+              if (auth.currentUser) {
+                const currentUserRef = doc(db, "users", auth.currentUser.uid);
+                const currentUserSnap = await getDoc(currentUserRef);
+                if (currentUserSnap.exists()) {
+                  const following = currentUserSnap.data().following || [];
+                  setIsFollowing(following.includes(bookData.ownerId));
+                }
+              }
             }
           }
           
@@ -120,22 +132,80 @@ function BookDetail({ db, auth }) {
 
       // Send notification to book owner
       if (book.ownerId !== auth.currentUser.uid) {
-        const ownerRef = doc(db, "users", book.ownerId);
-        await updateDoc(ownerRef, {
-          notifications: arrayUnion({
-            type: 'comment',
-            bookTitle: book.title,
-            bookWebId: webId,
-            commenterName: auth.currentUser.displayName || auth.currentUser.email,
-            timestamp: new Date(),
-            read: false
-          })
+        await addDoc(collection(db, "notifications"), {
+          recipientId: book.ownerId,
+          senderId: auth.currentUser.uid,
+          senderUsername: auth.currentUser.displayName || auth.currentUser.email,
+          type: "comment",
+          bookTitle: book.title,
+          bookWebId: webId,
+          message: `${auth.currentUser.displayName || auth.currentUser.email} ha comentado en tu libro ${book.title}.`,
+          timestamp: serverTimestamp(),
+          read: false
         });
       }
 
       setNewEntryText('');
     } catch (error) {
       console.error("Error adding forum entry:", error);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!auth.currentUser || !book || !book.ownerId) return;
+    try {
+      const currentUserRef = doc(db, "users", auth.currentUser.uid);
+      const ownerRef = doc(db, "users", book.ownerId);
+
+      await updateDoc(currentUserRef, {
+        following: arrayUnion(book.ownerId)
+      });
+      await updateDoc(ownerRef, {
+        followers: arrayUnion(auth.currentUser.uid),
+        followersCount: increment(1)
+      });
+      setIsFollowing(true);
+      setOwnerFollowersCount(prev => prev + 1);
+
+      // Create notification for the followed user
+      await addDoc(collection(db, "notifications"), {
+        recipientId: book.ownerId,
+        senderId: auth.currentUser.uid,
+        senderUsername: auth.currentUser.displayName || auth.currentUser.email,
+        type: "follow",
+        message: `${auth.currentUser.displayName || auth.currentUser.email} ha comenzado a seguirte.`,
+        read: false,
+        timestamp: serverTimestamp()
+      });
+
+      alert(`Ahora sigues a ${ownerName}.`);
+    } catch (error) {
+      console.error("Error following user:", error);
+      alert("Error al seguir al usuario.");
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!auth.currentUser || !book || !book.ownerId) return;
+    try {
+      const currentUserRef = doc(db, "users", auth.currentUser.uid);
+      const ownerRef = doc(db, "users", book.ownerId);
+
+      await updateDoc(currentUserRef, {
+        following: arrayRemove(book.ownerId)
+      });
+      await updateDoc(ownerRef, {
+        followers: arrayRemove(auth.currentUser.uid),
+        followersCount: increment(-1)
+      });
+      setIsFollowing(false);
+      setOwnerFollowersCount(prev => prev - 1);
+
+      alert(`Has dejado de seguir a ${ownerName}.`);
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+      console.error("Detailed error:", error);
+      alert("Error al dejar de seguir al usuario.");
     }
   };
 
@@ -211,8 +281,20 @@ function BookDetail({ db, auth }) {
             <p className="card-text"><strong>Descripción:</strong> {book.description}</p>
             <p className="card-text"><strong>Estado:</strong> {book.status}</p>
             <p className="card-text"><strong>Visitas:</strong> {book.views || 0}</p>
-            {book.ownerId && ownerName && (
-              <p className="card-text"><strong>Propietario:</strong> <Link to={`/profile/${book.ownerId}`}>{ownerName}</Link></p>
+            {book.ownerId && (
+              <p className="card-text">
+                <strong>Propietario:</strong> 
+                <Link to={`/profile/${book.ownerId}`} className="btn btn-sm btn-info ms-2">
+                  {ownerName || 'Desconocido'} ({ownerFollowersCount} seguidores)
+                </Link>
+                {auth.currentUser && auth.currentUser.uid !== book.ownerId && (
+                  isFollowing ? (
+                    <button className="btn btn-sm btn-outline-secondary ms-2" onClick={handleUnfollow}>Dejar de Seguir</button>
+                  ) : (
+                    <button className="btn btn-sm btn-primary ms-2" onClick={handleFollow}>Seguir</button>
+                  )
+                )}
+              </p>
             )}
           </div>
         </div>

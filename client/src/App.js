@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import firebaseConfig from './firebaseConfig';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -27,11 +27,34 @@ function App() {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        // Create or update user document in Firestore
+        const userRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            uid: currentUser.uid,
+            username: currentUser.displayName || currentUser.email,
+            email: currentUser.email,
+            profilePictureUrl: currentUser.photoURL || '',
+            followers: [],
+            following: []
+          }, { merge: true });
+        } else {
+          // Update existing user data if necessary (e.g., photoURL might change)
+          await updateDoc(userRef, {
+            username: currentUser.displayName || currentUser.email,
+            email: currentUser.email,
+            profilePictureUrl: currentUser.photoURL || '',
+            followersCount: userSnap.data().followersCount !== undefined ? userSnap.data().followersCount : 0
+          });
+        }
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [db]);
 
   const handleSignIn = async () => {
     try {
@@ -64,6 +87,11 @@ function App() {
               <li className="nav-item">
                 <a className="btn btn-outline-info mx-1" href="https://github.com/elswork/free.deft.work/blob/main/README.md" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} /> Acerca de</a>
               </li>
+              {user && (
+                <li className="nav-item">
+                  <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
+                </li>
+              )}
               {user && (
                 <li className="nav-item dropdown">
                   <button className="btn btn-outline-primary mx-1 dropdown-toggle" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">

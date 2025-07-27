@@ -7,7 +7,7 @@ service cloud.firestore {
       allow read: if true;
       allow update: if request.auth != null && (
         request.auth.uid == userId ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['notifications'])
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'followersCount']) && request.auth != null)
       );
     }
 
@@ -32,6 +32,13 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow read, write: if request.auth != null && get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
       }
+    }
+
+    // Reglas para la colección de notificaciones
+    match /notifications/{notificationId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == resource.data.recipientId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.recipientId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
     }
   }
 }

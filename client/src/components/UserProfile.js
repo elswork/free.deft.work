@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 function UserProfile({ auth, db, storage }) {
@@ -98,11 +98,19 @@ function UserProfile({ auth, db, storage }) {
   };
 
   const handleFollowToggle = async () => {
+    console.log("handleFollowToggle called");
     if (!auth.currentUser) {
       alert("You must be logged in to follow users.");
+      console.log("Not logged in.");
       return;
     }
-    if (isCurrentUserProfile) return;
+    if (isCurrentUserProfile) {
+      console.log("Cannot follow own profile.");
+      return;
+    }
+
+    console.log("Current User ID:", auth.currentUser.uid);
+    console.log("User to Follow ID:", userId);
 
     const currentUserRef = doc(db, "users", auth.currentUser.uid);
     const userToFollowRef = doc(db, "users", userId);
@@ -110,24 +118,42 @@ function UserProfile({ auth, db, storage }) {
     try {
       if (isFollowing) {
         // Unfollow
+        console.log("Attempting to unfollow...");
         await updateDoc(currentUserRef, {
           following: arrayRemove(userId)
         });
         await updateDoc(userToFollowRef, {
-          followers: arrayRemove(auth.currentUser.uid)
+          followers: arrayRemove(auth.currentUser.uid),
+          followersCount: increment(-1)
         });
         setIsFollowing(false);
         setFollowersCount(prev => prev - 1);
+        console.log("Unfollow successful.");
       } else {
         // Follow
+        console.log("Attempting to follow...");
         await updateDoc(currentUserRef, {
           following: arrayUnion(userId)
         });
         await updateDoc(userToFollowRef, {
-          followers: arrayUnion(auth.currentUser.uid)
+          followers: arrayUnion(auth.currentUser.uid),
+          followersCount: increment(1)
         });
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);
+        console.log("Follow successful. Attempting to create notification...");
+
+        // Create notification for the followed user
+        await addDoc(collection(db, "notifications"), {
+          recipientId: userId,
+          senderId: auth.currentUser.uid,
+          senderUsername: auth.currentUser.displayName || auth.currentUser.email,
+          type: "follow",
+          message: `${auth.currentUser.displayName || auth.currentUser.email} ha comenzado a seguirte.`,
+          read: false,
+          timestamp: serverTimestamp()
+        });
+        console.log("Notification created successfully.");
       }
     } catch (err) {
       console.error("Error updating follow status:", err);
@@ -168,6 +194,11 @@ function UserProfile({ auth, db, storage }) {
       
       <div className="text-center mb-3">
         <p><strong>Seguidores:</strong> {followersCount} | <strong>Siguiendo:</strong> {followingCount}</p>
+        {console.log("Rendering button conditions:", {
+          currentUser: auth.currentUser,
+          userId: userId,
+          isCurrentUserProfile: isCurrentUserProfile
+        })}
         {auth.currentUser && !isCurrentUserProfile && (
           <button onClick={handleFollowToggle} className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`}>
             {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
