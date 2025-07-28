@@ -132,16 +132,17 @@ function BookDetail({ db, auth }) {
 
       // Send notification to book owner
       if (book.ownerId !== auth.currentUser.uid) {
-        await addDoc(collection(db, "notifications"), {
-          recipientId: book.ownerId,
-          senderId: auth.currentUser.uid,
-          senderUsername: auth.currentUser.displayName || auth.currentUser.email,
-          type: "comment",
-          bookTitle: book.title,
-          bookWebId: webId,
-          message: `${auth.currentUser.displayName || auth.currentUser.email} ha comentado en tu libro ${book.title}.`,
-          timestamp: serverTimestamp(),
-          read: false
+        const userRef = doc(db, "users", book.ownerId);
+        await updateDoc(userRef, {
+            notifications: arrayUnion({
+                commenterId: auth.currentUser.uid,
+                commenterName: auth.currentUser.displayName || auth.currentUser.email,
+                bookTitle: book.title,
+                bookWebId: webId,
+                timestamp: new Date(),
+                read: false,
+                type: 'comment'
+            })
         });
       }
 
@@ -168,14 +169,15 @@ function BookDetail({ db, auth }) {
       setOwnerFollowersCount(prev => prev + 1);
 
       // Create notification for the followed user
-      await addDoc(collection(db, "notifications"), {
-        recipientId: book.ownerId,
-        senderId: auth.currentUser.uid,
-        senderUsername: auth.currentUser.displayName || auth.currentUser.email,
-        type: "follow",
-        message: `${auth.currentUser.displayName || auth.currentUser.email} ha comenzado a seguirte.`,
-        read: false,
-        timestamp: serverTimestamp()
+      const userRef = doc(db, "users", book.ownerId);
+      await updateDoc(userRef, {
+          notifications: arrayUnion({
+              followerId: auth.currentUser.uid,
+              followerName: auth.currentUser.displayName || auth.currentUser.email,
+              timestamp: new Date(),
+              read: false,
+              type: 'follow'
+          })
       });
 
       alert(`Ahora sigues a ${ownerName}.`);
