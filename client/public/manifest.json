@@ -1,25 +1,65 @@
 {
-  "short_name": "Free Deft Work",
-  "name": "Dona, regala o comparte tus libros con nuestro sistema",
+  "short_name": "FDW",
+  "name": "Free Deft Work",
+  "description": "Dona, regala o comparte tus libros con nuestro sistema de seguimiento por QR. Sigue el viaje de tus libros y conecta con otros lectores.",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/images/LogoFDW.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
-      "src": "logo192.webp",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "/images/LogoFDW.webp",
+      "type": "image/webp",
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
-      "src": "logo512.webp",
+      "src": "/images/LogoFDW.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/LogoFDW.webp",
+      "type": "image/webp",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/LogoFDW.png",
+      "type": "image/png",
+      "sizes": "1024x1024",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/LogoFDW.webp",
+      "type": "image/webp",
+      "sizes": "1024x1024",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "screenshots": [
+    {
+      "src": "/images/desktop.jpg",
+      "type": "image/jpeg",
+      "sizes": "1920x1080",
+      "form_factor": "wide",
+      "label": "Vista de escritorio de la aplicación"
+    },
+    {
+      "src": "/images/movil.jpg",
+      "type": "image/jpeg",
+      "sizes": "400x858",
+      "form_factor": "narrow",
+      "label": "Vista móvil de la aplicación"
+    }
+  ],
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0d6efd",
+  "background_color": "#ffffff",
+  "scope": "/",
+  "orientation": "portrait"
 }
