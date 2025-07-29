@@ -31,12 +31,14 @@ En esencia, este proyecto transforma un acto simple como compartir un libro en u
 ## Características
 
 - Gestión de información de libros (título, autor, ISBN, género, descripción, estado, ID web).
+- Escaneo de ISBN con cámara y autocompletado automático de detalles del libro (título, autor, descripción, portada) usando la API de Google Books.
 - Generación de etiquetas imprimibles con códigos QR únicos para cada libro.
 - Foro de discusión integrado para cada libro, permitiendo a los usuarios interactuar y compartir comentarios.
 - Autenticación de usuarios para participar en el foro.
 
 ## Tecnologías Utilizadas
 
+- **IA** Gemini_cli
 - **Frontend:** React (versión 17.x.x)
 - **Gestor de Paquetes:** npm
 - **Base de Datos y Autenticación:** Google Firebase (Firestore, Authentication)
@@ -83,6 +85,7 @@ Sigue estos pasos para configurar y ejecutar el proyecto en tu máquina local:
 Una vez que la aplicación esté en funcionamiento, podrás:
 
 - Navegar por la lista de libros.
+- Añadir nuevos libros, con la opción de escanear el ISBN con la cámara para autocompletar automáticamente el título, autor, descripción y portada del libro a través de la API de Google Books.
 - Ver los detalles de cada libro, incluyendo su información y un código QR.
 - Imprimir etiquetas de libros (la funcionalidad de impresión utiliza la función nativa del navegador).
 - Participar en el foro de cada libro, añadiendo comentarios (requiere inicio de sesión).
