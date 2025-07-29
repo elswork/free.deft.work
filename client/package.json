@@ -11,7 +11,9 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
+    "dotenv": "^17.2.1",
     "firebase": "^9.23.0",
+    "firebase-admin": "^13.4.0",
     "html2canvas": "^1.4.1",
     "qrcode.react": "^4.2.0",
     "react": "^17.0.2",
@@ -25,7 +27,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "sitemap": "node generate-sitemap.js",
+    "build": "npm run sitemap && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
