@@ -3,7 +3,9 @@ import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Link, useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBook, faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch, faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBook, faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch, faShareAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import axios from 'axios';
 
 
 
@@ -31,9 +33,8 @@ function BookList({ auth, db, storage }) {
   });
   const [imageFile, setImageFile] = useState(null);
   const [editingBookId, setEditingBookId] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
   const history = useHistory();
-  
-  
 
   useEffect(() => {
     if (auth.currentUser) {
@@ -49,11 +50,68 @@ function BookList({ auth, db, storage }) {
     }
   }, [auth.currentUser, db]);
 
-  
+  useEffect(() => {
+    let html5QrcodeScanner;
+    if (showScanner) {
+      html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        false
+      );
+      html5QrcodeScanner.render(onScanSuccess, onScanError);
+    }
+
+    return () => {
+      if (html5QrcodeScanner && html5QrcodeScanner.clear) {
+        html5QrcodeScanner.clear().catch(error => {
+          console.error("Failed to clear html5QrcodeScanner. ", error);
+        });
+      }
+    };
+  }, [showScanner]);
+
+  const fetchBookDetails = async (isbn) => {
+    try {
+      const response = await axios.get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+      const bookData = response.data.items[0]?.volumeInfo;
+
+      if (bookData) {
+        setNewBook(prev => ({
+          ...prev,
+          title: bookData.title || '',
+          author: bookData.authors ? bookData.authors.join(', ') : '',
+          description: bookData.description || '',
+          imageUrl: bookData.imageLinks?.thumbnail || '',
+          isbn: isbn,
+        }));
+      } else {
+        alert("No se encontraron detalles para este ISBN.");
+      }
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+      alert("Error al buscar detalles del libro. Inténtalo manualmente.");
+    }
+  };
+
+  const onScanSuccess = (decodedText, decodedResult) => {
+    console.log(`Code matched = ${decodedText}`, decodedResult);
+    setNewBook(prev => ({ ...prev, isbn: decodedText }));
+    fetchBookDetails(decodedText);
+    setShowScanner(false);
+  };
+
+  const onScanError = (error) => {
+    // console.warn(`Code scan error = ${error}`);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewBook({ ...newBook, [name]: value });
+    if (name === "isbn" && value.length === 13) { // Asumiendo ISBN-13
+      fetchBookDetails(value);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -125,13 +183,23 @@ function BookList({ auth, db, storage }) {
       <h2 className="mb-3">{editingBookId ? "Editar Libro" : "Añadir Nuevo Libro"}</h2>
       <form onSubmit={handleAddOrUpdateBook} className="mb-5">
         <div className="mb-3">
+          <input type="text" name="isbn" className="form-control" placeholder="ISBN" value={newBook.isbn} onChange={handleInputChange} />
+        </div>
+        <div className="mb-3">
+          <button type="button" className="btn btn-info" onClick={() => setShowScanner(!showScanner)}>
+            <FontAwesomeIcon icon={faCamera} /> {showScanner ? "Cerrar Escáner" : "Escanear ISBN"}
+          </button>
+        </div>
+        {showScanner && (
+          <div className="mb-3">
+            <div id="reader" style={{ width: "100%" }}></div>
+          </div>
+        )}
+        <div className="mb-3">
           <input type="text" name="title" className="form-control" placeholder="Título" value={newBook.title} onChange={handleInputChange} required />
         </div>
         <div className="mb-3">
           <input type="text" name="author" className="form-control" placeholder="Autor" value={newBook.author} onChange={handleInputChange} required />
-        </div>
-        <div className="mb-3">
-          <input type="text" name="isbn" className="form-control" placeholder="ISBN" value={newBook.isbn} onChange={handleInputChange} />
         </div>
         <div className="mb-3">
           <input type="text" name="genre" className="form-control" placeholder="Género" value={newBook.genre} onChange={handleInputChange} />
