@@ -25,7 +25,8 @@ service cloud.firestore {
       // Subcolección para calificaciones de libros
       match /ratings/{ratingId} {
         allow read: if true;
-        allow write: if request.auth != null && request.auth.uid == ratingId;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       }
     }
 
