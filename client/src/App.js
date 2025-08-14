@@ -12,6 +12,7 @@ import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
 import BookDetail from './components/BookDetail';
 import AuthForm from './components/AuthForm'; // Importar el nuevo componente
+import { requestForToken, onMessageListener } from './firebaseConfig';
 import Notifications from './components/Notifications';
 import './App.css';
 
@@ -25,34 +26,57 @@ function App() {
   const [user, setUser] = useState(null);
   const [showWelcomeSection, setShowWelcomeSection] = useState(true); // Nuevo estado para la sección de bienvenida
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [notification, setNotification] = useState({ title: '', body: '' });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
       if (currentUser) {
-        // Create or update user document in Firestore
         const userRef = doc(db, "users", currentUser.uid);
         const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            uid: currentUser.uid,
-            username: currentUser.displayName || currentUser.email,
-            email: currentUser.email,
-            profilePictureUrl: currentUser.photoURL || '',
-            followers: [],
-            following: []
-          }, { merge: true });
-        } else {
-          // Update existing user data if necessary (e.g., photoURL might change)
-          await updateDoc(userRef, {
-            username: currentUser.displayName || currentUser.email,
-            email: currentUser.email,
-            profilePictureUrl: currentUser.photoURL || '',
-            followersCount: userSnap.data().followersCount !== undefined ? userSnap.data().followersCount : 0
-          });
+
+        // Base user data payload
+        const userData = {
+          uid: currentUser.uid,
+          username: currentUser.displayName || currentUser.email,
+          email: currentUser.email,
+          profilePictureUrl: currentUser.photoURL || '',
+        };
+
+        // Request token and add to payload if available
+        try {
+          const fcmToken = await requestForToken();
+          if (fcmToken) {
+            const existingToken = userSnap.exists() ? userSnap.data().fcmToken : null;
+            if (fcmToken !== existingToken) {
+              console.log('New or updated FCM token found, updating Firestore...');
+              userData.fcmToken = fcmToken;
+            }
+          }
+        } catch (error) {
+          console.error('Error handling FCM token:', error);
         }
+
+        // Create or update user document
+        if (!userSnap.exists()) {
+          console.log('New user, creating document...');
+          await setDoc(userRef, { ...userData, followers: [], following: [] }, { merge: true });
+        } else {
+          console.log('Existing user, merging data...');
+          await setDoc(userRef, userData, { merge: true });
+        }
+
+        setUser(currentUser);
+      } else {
+        setUser(null);
       }
     });
+
+    onMessageListener()
+      .then((payload) => {
+        setNotification({ title: payload.notification.title, body: payload.notification.body });
+      })
+      .catch((err) => console.log('failed: ', err));
+
     return () => unsubscribe();
   }, [db]);
 
