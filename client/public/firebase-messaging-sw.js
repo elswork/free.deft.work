@@ -4,13 +4,13 @@ importScripts("https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js")
 
 // Initialize the Firebase app in the service worker with your project's config
 const firebaseConfig = {
-  apiKey: "AIzaSyDi-oqgYUgbtc16DMtJPlXftowGou65ZAg",
-  authDomain: "free-deft-work.firebaseapp.com",
-  projectId: "free-deft-work",
-  storageBucket: "free-deft-work.firebasestorage.app",
-  messagingSenderId: "951143682652",
-  appId: "1:951143682652:web:62625c64f20b69351f8c99",
-  measurementId: "G-1FLXLBP0TW",
+  apiKey: "%REACT_APP_FIREBASE_API_KEY%",
+  authDomain: "%REACT_APP_FIREBASE_AUTH_DOMAIN%",
+  projectId: "%REACT_APP_FIREBASE_PROJECT_ID%",
+  storageBucket: "%REACT_APP_FIREBASE_STORAGE_BUCKET%",
+  messagingSenderId: "%REACT_APP_FIREBASE_MESSAGING_SENDER_ID%",
+  appId: "%REACT_APP_FIREBASE_APP_ID%",
+  measurementId: "%REACT_APP_FIREBASE_MEASUREMENT_ID%",
 };
 
 firebase.initializeApp(firebaseConfig);

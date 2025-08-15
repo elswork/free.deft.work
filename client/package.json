@@ -30,7 +30,7 @@
   "scripts": {
     "start": "react-scripts start",
     "sitemap": "node generate-sitemap.js",
-    "build": "npm run sitemap && react-scripts build",
+    "build": "npm run sitemap && react-scripts build && node inject-env.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
