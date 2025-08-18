@@ -2,6 +2,8 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
+const axios = require("axios");
+const cors = require("cors")({origin: true});
 
 admin.initializeApp();
 
@@ -136,4 +138,55 @@ exports.testFCMNotification = onRequest({
     }, { structuredData: true });
     res.status(500).send(`Error sending test notification: ${error.message}`);
   }
+});
+
+exports.searchYouTube = onRequest({region: "europe-west1"}, (req, res) => {
+  cors(req, res, async () => {
+    functions.logger.log("Received search request", {query: req.query});
+
+    const query = req.query.q;
+    if (!query) {
+      functions.logger.error("Search query is missing.");
+      res.status(400).send("Search query parameter 'q' is required.");
+      return;
+    }
+
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) {
+      functions.logger.error("YouTube API key is not configured.");
+      res.status(500).send("API key is not configured on the server.");
+      return;
+    }
+
+    const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search";
+    const options = {
+      part: "snippet",
+      q: query,
+      key: apiKey,
+      maxResults: 10,
+      type: "video",
+    };
+
+    try {
+      const response = await axios.get(YOUTUBE_API_URL, { params: options });
+      const results = response.data.items.map((item) => ({
+        youtubeId: item.id.videoId,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        thumbnailUrl: item.snippet.thumbnails.default.url,
+        channelTitle: item.snippet.channelTitle,
+        publishedAt: item.snippet.publishedAt,
+      }));
+      
+      functions.logger.log(`Found ${results.length} results for query: "${query}"`);
+      res.status(200).json(results);
+
+    } catch (error) {
+      functions.logger.error("Error searching YouTube:", {
+        message: error.message,
+        response: error.response ? error.response.data : null,
+      });
+      res.status(500).send("An error occurred while searching YouTube.");
+    }
+  });
 });

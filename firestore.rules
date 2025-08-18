@@ -52,5 +52,24 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == resource.data.recipientId;
       allow update: if request.auth != null && request.auth.uid == resource.data.recipientId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
     }
+
+    // Reglas para contenido de YouTube
+    match /videos/{videoId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth.uid == resource.data.ownerId;
+    }
+
+    match /movies/{movieId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth.uid == resource.data.ownerId;
+    }
+
+    match /music/{musicId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth.uid == resource.data.ownerId;
+    }
   }
 }

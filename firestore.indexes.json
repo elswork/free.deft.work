@@ -1,19 +1,4 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "forumEntries",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "webId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "timestamp",
-          "order": "ASCENDING"
-        }
-      ]
-    }
-  ],
+  "indexes": [],
   "fieldOverrides": []
 }

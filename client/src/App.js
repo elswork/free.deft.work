@@ -6,7 +6,7 @@ import { getFirestore, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore
 import { getStorage } from 'firebase/storage';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faSignInAlt, faSignOutAlt, faUser, faInfoCircle, faBook, faExternalLinkAlt, faPaperPlane, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch, faBell } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUser, faInfoCircle, faBook, faExternalLinkAlt, faPaperPlane, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch, faBell, faVideo, faFilm, faMusic } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
@@ -14,6 +14,13 @@ import BookDetail from './components/BookDetail';
 import AuthForm from './components/AuthForm'; // Importar el nuevo componente
 import { requestForToken, onMessageListener } from './firebaseConfig';
 import Notifications from './components/Notifications';
+import YouTubeSearch from './components/YouTubeSearch';
+import VideoList from './components/VideoList'; // Importar la lista de videos
+import VideoDetail from './components/VideoDetail'; // Importar el detalle de video
+import MovieList from './components/MovieList';
+import MovieDetail from './components/MovieDetail';
+import MusicList from './components/MusicList';
+import MusicDetail from './components/MusicDetail';
 import './App.css';
 
 const app = initializeApp(firebaseConfig);
@@ -109,11 +116,25 @@ function App() {
                 <Link className="btn btn-outline-primary mx-1" to="/"><FontAwesomeIcon icon={faHome} /> Inicio</Link>
               </li>
               <li className="nav-item">
+                <Link className="btn btn-outline-primary mx-1" to="/videos"><FontAwesomeIcon icon={faVideo} /> Videoteca</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="btn btn-outline-primary mx-1" to="/movies"><FontAwesomeIcon icon={faFilm} /> Películas</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="btn btn-outline-primary mx-1" to="/music"><FontAwesomeIcon icon={faMusic} /> Videoclips</Link>
+              </li>
+              <li className="nav-item">
                 <a className="btn btn-outline-info mx-1" href="https://github.com/elswork/free.deft.work/blob/main/README.md" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} /> Acerca de</a>
               </li>
               {user && (
                 <li className="nav-item">
                   <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
+                </li>
+              )}
+              {user && (
+                <li className="nav-item">
+                  <Link className="btn btn-outline-info mx-1" to="/admin/youtube-search"><FontAwesomeIcon icon={faSearch} /> Buscar Contenido</Link>
                 </li>
               )}
               {user && (
@@ -164,8 +185,15 @@ function App() {
                 )}
               </>
             )} />
+            <Route path="/videos/:videoId" component={() => <VideoDetail db={db} />} />
+            <Route path="/videos" component={() => <VideoList db={db} auth={auth} />} />
+            <Route path="/movies/:movieId" component={() => <MovieDetail db={db} />} />
+            <Route path="/movies" component={() => <MovieList db={db} auth={auth} />} />
+            <Route path="/music/:musicId" component={() => <MusicDetail db={db} />} />
+            <Route path="/music" component={() => <MusicList db={db} auth={auth} />} />
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
             <Route path="/profile/:userId" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
+            <Route path="/admin/youtube-search" component={() => <YouTubeSearch db={db} auth={auth} />} />
             <Route path="/:webId" component={() => <BookDetail db={db} auth={auth} />} />
           </Switch>
         </main>
