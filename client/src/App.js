@@ -119,7 +119,7 @@ function App() {
                 <Link className="btn btn-outline-primary mx-1" to="/libro"><FontAwesomeIcon icon={faBook} /> Libro</Link>
               </li>
               <li className="nav-item">
-                <Link className="btn btn-outline-primary mx-1" to="/videos"><FontAwesomeIcon icon={faVideo} /> Videoteca</Link>
+                <Link className="btn btn-outline-primary mx-1" to="/videos"><FontAwesomeIcon icon={faVideo} /> Videos</Link>
               </li>
               <li className="nav-item">
                 <Link className="btn btn-outline-primary mx-1" to="/movies"><FontAwesomeIcon icon={faFilm} /> Películas</Link>
@@ -193,12 +193,12 @@ function App() {
                 <BookList auth={auth} db={db} storage={storage} />
               </div>
             )} />
-            <Route path="/videos/:videoId" component={() => <VideoDetail db={db} />} />
-            <Route path="/videos" component={() => <VideoList db={db} auth={auth} />} />
-            <Route path="/movies/:movieId" component={() => <MovieDetail db={db} />} />
-            <Route path="/movies" component={() => <MovieList db={db} auth={auth} />} />
-            <Route path="/music/:musicId" component={() => <MusicDetail db={db} />} />
-            <Route path="/music" component={() => <MusicList db={db} auth={auth} />} />
+            <Route path="/videos/:videoId" render={(props) => <VideoDetail db={db} auth={auth} {...props} />} />
+            <Route path="/videos" render={(props) => <VideoList db={db} auth={auth} {...props} />} />
+            <Route path="/movies/:movieId" render={(props) => <MovieDetail db={db} auth={auth} {...props} />} />
+            <Route path="/movies" render={(props) => <MovieList db={db} auth={auth} {...props} />} />
+            <Route path="/music/:musicId" render={(props) => <MusicDetail db={db} auth={auth} {...props} />} />
+            <Route path="/music" render={(props) => <MusicList db={db} auth={auth} {...props} />} />
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
             <Route path="/profile/:userId" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
             <Route path="/admin/youtube-search" component={() => <YouTubeSearch db={db} auth={auth} />} />

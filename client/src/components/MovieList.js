@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const MovieList = ({ db, auth }) => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTopContent, setShowTopContent] = useState(false);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -12,7 +13,12 @@ const MovieList = ({ db, auth }) => {
       setLoading(true);
       try {
         const moviesCollection = collection(db, 'movies');
-        const q = query(moviesCollection, orderBy('createdAt', 'desc'));
+        let q;
+        if (showTopContent) {
+          q = query(moviesCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
+        } else {
+          q = query(moviesCollection, orderBy('createdAt', 'desc'));
+        }
         const querySnapshot = await getDocs(q);
         const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setMovies(moviesData);
@@ -23,7 +29,7 @@ const MovieList = ({ db, auth }) => {
     };
 
     fetchMovies();
-  }, [db]);
+  }, [db, showTopContent]);
 
   if (loading) {
     return <p>Cargando películas...</p>;
@@ -32,6 +38,20 @@ const MovieList = ({ db, auth }) => {
   return (
     <div className="mt-4">
       <h2 className="mb-3">Películas</h2>
+      <div className="d-flex justify-content-end mb-3">
+        <div className="form-check form-switch">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="flexSwitchCheckDefault"
+            checked={showTopContent}
+            onChange={(e) => setShowTopContent(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="flexSwitchCheckDefault">
+            Mostrar Contenido Top
+          </label>
+        </div>
+      </div>
       <div className="row">
         {movies.length > 0 ? (
           movies.map((movie) => (
@@ -41,7 +61,8 @@ const MovieList = ({ db, auth }) => {
                 <div className="card-body">
                   <h5 className="card-title">{movie.title}</h5>
                   <p className="card-text text-muted">{movie.channelTitle}</p>
-                  <Link to={`/movies/${movie.id}`} className="btn btn-primary">
+                  {movie.isTopContent && <span className="badge bg-warning">Top {movie.topOrder}</span>}
+                  <Link to={`/movies/${movie.id}`} className="btn btn-primary mt-2">
                     Ver Película
                   </Link>
                 </div>

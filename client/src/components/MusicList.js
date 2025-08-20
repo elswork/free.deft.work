@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const MusicList = ({ db, auth }) => {
   const [music, setMusic] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTopContent, setShowTopContent] = useState(false);
 
   useEffect(() => {
     const fetchMusic = async () => {
@@ -12,7 +13,12 @@ const MusicList = ({ db, auth }) => {
       setLoading(true);
       try {
         const musicCollection = collection(db, 'music');
-        const q = query(musicCollection, orderBy('createdAt', 'desc'));
+        let q;
+        if (showTopContent) {
+          q = query(musicCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
+        } else {
+          q = query(musicCollection, orderBy('createdAt', 'desc'));
+        }
         const querySnapshot = await getDocs(q);
         const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setMusic(musicData);
@@ -23,7 +29,7 @@ const MusicList = ({ db, auth }) => {
     };
 
     fetchMusic();
-  }, [db]);
+  }, [db, showTopContent]);
 
   if (loading) {
     return <p>Cargando videoclips...</p>;
@@ -32,6 +38,20 @@ const MusicList = ({ db, auth }) => {
   return (
     <div className="mt-4">
       <h2 className="mb-3">Videoclips</h2>
+      <div className="d-flex justify-content-end mb-3">
+        <div className="form-check form-switch">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="flexSwitchCheckDefault"
+            checked={showTopContent}
+            onChange={(e) => setShowTopContent(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="flexSwitchCheckDefault">
+            Mostrar Contenido Top
+          </label>
+        </div>
+      </div>
       <div className="row">
         {music.length > 0 ? (
           music.map((clip) => (
@@ -41,7 +61,8 @@ const MusicList = ({ db, auth }) => {
                 <div className="card-body">
                   <h5 className="card-title">{clip.title}</h5>
                   <p className="card-text text-muted">{clip.channelTitle}</p>
-                  <Link to={`/music/${clip.id}`} className="btn btn-primary">
+                  {clip.isTopContent && <span className="badge bg-warning">Top {clip.topOrder}</span>}
+                  <Link to={`/music/${clip.id}`} className="btn btn-primary mt-2">
                     Ver Videoclip
                   </Link>
                 </div>

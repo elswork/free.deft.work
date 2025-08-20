@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const VideoList = ({ db, auth }) => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTopContent, setShowTopContent] = useState(false);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -12,7 +13,12 @@ const VideoList = ({ db, auth }) => {
       setLoading(true);
       try {
         const videosCollection = collection(db, 'videos');
-        const q = query(videosCollection, orderBy('createdAt', 'desc'));
+        let q;
+        if (showTopContent) {
+          q = query(videosCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
+        } else {
+          q = query(videosCollection, orderBy('createdAt', 'desc'));
+        }
         const querySnapshot = await getDocs(q);
         const videosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setVideos(videosData);
@@ -23,7 +29,7 @@ const VideoList = ({ db, auth }) => {
     };
 
     fetchVideos();
-  }, [db]);
+  }, [db, showTopContent]);
 
   if (loading) {
     return <p>Cargando videos...</p>;
@@ -31,7 +37,21 @@ const VideoList = ({ db, auth }) => {
 
   return (
     <div className="mt-4">
-      <h2 className="mb-3">Videoteca</h2>
+      <h2 className="mb-3">Videos</h2>
+      <div className="d-flex justify-content-end mb-3">
+        <div className="form-check form-switch">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="flexSwitchCheckDefault"
+            checked={showTopContent}
+            onChange={(e) => setShowTopContent(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="flexSwitchCheckDefault">
+            Mostrar Contenido Top
+          </label>
+        </div>
+      </div>
       <div className="row">
         {videos.length > 0 ? (
           videos.map((video) => (
@@ -41,8 +61,8 @@ const VideoList = ({ db, auth }) => {
                 <div className="card-body">
                   <h5 className="card-title">{video.title}</h5>
                   <p className="card-text text-muted">{video.channelTitle}</p>
-                  {/* El enlace al detalle del video lo implementaremos más adelante */}
-                  <Link to={`/videos/${video.id}`} className="btn btn-primary">
+                  {video.isTopContent && <span className="badge bg-warning">Top {video.topOrder}</span>}
+                  <Link to={`/videos/${video.id}`} className="btn btn-primary mt-2">
                     Ver Video
                   </Link>
                 </div>
