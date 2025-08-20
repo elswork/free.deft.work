@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const VideoList = ({ db, auth }) => {
@@ -7,29 +7,40 @@ const VideoList = ({ db, auth }) => {
   const [loading, setLoading] = useState(true);
   const [showTopContent, setShowTopContent] = useState(false);
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      if (!db) return;
-      setLoading(true);
-      try {
-        const videosCollection = collection(db, 'videos');
-        let q;
-        if (showTopContent) {
-          q = query(videosCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
-        } else {
-          q = query(videosCollection, orderBy('createdAt', 'desc'));
-        }
-        const querySnapshot = await getDocs(q);
-        const videosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setVideos(videosData);
-      } catch (error) {
-        console.error("Error fetching videos: ", error);
+  const fetchVideos = useCallback(async () => {
+    if (!db) return;
+    setLoading(true);
+    try {
+      const videosCollection = collection(db, 'videos');
+      let q;
+      if (showTopContent) {
+        q = query(videosCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
+      } else {
+        q = query(videosCollection, orderBy('createdAt', 'desc'));
       }
-      setLoading(false);
-    };
-
-    fetchVideos();
+      const querySnapshot = await getDocs(q);
+      const videosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setVideos(videosData);
+    } catch (error) {
+      console.error("Error fetching videos: ", error);
+    }
+    setLoading(false);
   }, [db, showTopContent]);
+
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
+
+  const handleDelete = async (videoId) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este video?")) {
+      try {
+        await deleteDoc(doc(db, "videos", videoId));
+        fetchVideos();
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+      }
+    }
+  };
 
   if (loading) {
     return <p>Cargando videos...</p>;
@@ -65,6 +76,11 @@ const VideoList = ({ db, auth }) => {
                   <Link to={`/videos/${video.id}`} className="btn btn-primary mt-2">
                     Ver Video
                   </Link>
+                  {auth.currentUser && auth.currentUser.uid === video.ownerId && (
+                    <button onClick={() => handleDelete(video.id)} className="btn btn-danger mt-2 ms-2">
+                      Eliminar
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

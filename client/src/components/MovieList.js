@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const MovieList = ({ db, auth }) => {
@@ -7,29 +7,40 @@ const MovieList = ({ db, auth }) => {
   const [loading, setLoading] = useState(true);
   const [showTopContent, setShowTopContent] = useState(false);
 
-  useEffect(() => {
-    const fetchMovies = async () => {
-      if (!db) return;
-      setLoading(true);
-      try {
-        const moviesCollection = collection(db, 'movies');
-        let q;
-        if (showTopContent) {
-          q = query(moviesCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
-        } else {
-          q = query(moviesCollection, orderBy('createdAt', 'desc'));
-        }
-        const querySnapshot = await getDocs(q);
-        const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setMovies(moviesData);
-      } catch (error) {
-        console.error("Error fetching movies: ", error);
+  const fetchMovies = useCallback(async () => {
+    if (!db) return;
+    setLoading(true);
+    try {
+      const moviesCollection = collection(db, 'movies');
+      let q;
+      if (showTopContent) {
+        q = query(moviesCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
+      } else {
+        q = query(moviesCollection, orderBy('createdAt', 'desc'));
       }
-      setLoading(false);
-    };
-
-    fetchMovies();
+      const querySnapshot = await getDocs(q);
+      const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMovies(moviesData);
+    } catch (error) {
+      console.error("Error fetching movies: ", error);
+    }
+    setLoading(false);
   }, [db, showTopContent]);
+
+  useEffect(() => {
+    fetchMovies();
+  }, [fetchMovies]);
+
+  const handleDelete = async (movieId) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar esta película?")) {
+      try {
+        await deleteDoc(doc(db, "movies", movieId));
+        fetchMovies();
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+      }
+    }
+  };
 
   if (loading) {
     return <p>Cargando películas...</p>;
@@ -65,6 +76,11 @@ const MovieList = ({ db, auth }) => {
                   <Link to={`/movies/${movie.id}`} className="btn btn-primary mt-2">
                     Ver Película
                   </Link>
+                  {auth.currentUser && auth.currentUser.uid === movie.ownerId && (
+                    <button onClick={() => handleDelete(movie.id)} className="btn btn-danger mt-2 ms-2">
+                      Eliminar
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

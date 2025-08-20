@@ -38,7 +38,7 @@ const YouTubeSearch = ({ db, auth }) => {
 
     try {
       // Usar la categoría del estado para determinar la colección
-      const docRef = await addDoc(collection(db, category), {
+      await addDoc(collection(db, category), {
         ...video,
         ownerId: auth.currentUser.uid,
         createdAt: serverTimestamp()

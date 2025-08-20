@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBook, faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faSearch, faShareAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faShareAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import axios from 'axios';
 
@@ -35,6 +35,36 @@ function BookList({ auth, db, storage }) {
   const [editingBookId, setEditingBookId] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
   const history = useHistory();
+
+  const fetchBookDetails = useCallback(async (isbn) => {
+    try {
+      const response = await axios.get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+      const bookData = response.data.items[0]?.volumeInfo;
+
+      if (bookData) {
+        setNewBook(prev => ({
+          ...prev,
+          title: bookData.title || '',
+          author: bookData.authors ? bookData.authors.join(', ') : '',
+          description: bookData.description || '',
+          imageUrl: bookData.imageLinks?.thumbnail || '',
+          isbn: isbn,
+        }));
+      } else {
+        alert("No se encontraron detalles para este ISBN.");
+      }
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+      alert("Error al buscar detalles del libro. Inténtalo manualmente.");
+    }
+  }, []);
+
+  const onScanSuccess = useCallback((decodedText, decodedResult) => {
+    console.log(`Code matched = ${decodedText}`, decodedResult);
+    setNewBook(prev => ({ ...prev, isbn: decodedText }));
+    fetchBookDetails(decodedText);
+    setShowScanner(false);
+  }, [fetchBookDetails]);
 
   useEffect(() => {
     if (auth.currentUser) {
@@ -70,37 +100,7 @@ function BookList({ auth, db, storage }) {
         });
       }
     };
-  }, [showScanner]);
-
-  const fetchBookDetails = async (isbn) => {
-    try {
-      const response = await axios.get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-      const bookData = response.data.items[0]?.volumeInfo;
-
-      if (bookData) {
-        setNewBook(prev => ({
-          ...prev,
-          title: bookData.title || '',
-          author: bookData.authors ? bookData.authors.join(', ') : '',
-          description: bookData.description || '',
-          imageUrl: bookData.imageLinks?.thumbnail || '',
-          isbn: isbn,
-        }));
-      } else {
-        alert("No se encontraron detalles para este ISBN.");
-      }
-    } catch (error) {
-      console.error("Error fetching book details:", error);
-      alert("Error al buscar detalles del libro. Inténtalo manualmente.");
-    }
-  };
-
-  const onScanSuccess = (decodedText, decodedResult) => {
-    console.log(`Code matched = ${decodedText}`, decodedResult);
-    setNewBook(prev => ({ ...prev, isbn: decodedText }));
-    fetchBookDetails(decodedText);
-    setShowScanner(false);
-  };
+  }, [showScanner, onScanSuccess]);
 
   const onScanError = (error) => {
     // console.warn(`Code scan error = ${error}`);

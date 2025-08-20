@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useParams, Link } from 'react-router-dom';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 function UserProfile({ auth, db, storage }) {
@@ -13,6 +13,10 @@ function UserProfile({ auth, db, storage }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState({ type: '', message: '' });
+  const [userBooks, setUserBooks] = useState([]);
+  const [userVideos, setUserVideos] = useState([]);
+  const [userMovies, setUserMovies] = useState([]);
+  const [userMusic, setUserMusic] = useState([]);
 
   const isCurrentUserProfile = auth.currentUser && auth.currentUser.uid === userId;
 
@@ -48,8 +52,34 @@ function UserProfile({ auth, db, storage }) {
       }
     };
 
+    const fetchUserContent = async () => {
+      const collections = {
+        books: setUserBooks,
+        videos: setUserVideos,
+        movies: setUserMovies,
+        music: setUserMusic,
+      };
+
+      for (const [collectionName, setter] of Object.entries(collections)) {
+        try {
+          const q = query(
+            collection(db, collectionName),
+            where("ownerId", "==", userId),
+            orderBy("createdAt", "desc"),
+            limit(5)
+          );
+          const querySnapshot = await getDocs(q);
+          const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setter(items);
+        } catch (error) {
+          console.error(`Error fetching user ${collectionName}:`, error);
+        }
+      }
+    };
+
     if (userId) {
       fetchProfile();
+      fetchUserContent();
     }
   }, [userId, db, auth.currentUser]);
 
@@ -253,6 +283,58 @@ function UserProfile({ auth, db, storage }) {
           <button type="submit" className="btn btn-success w-100" disabled={loading}>Guardar Perfil</button>
         )}
       </form>
+
+      <div className="mt-5">
+        <h3>Últimos Libros</h3>
+        {userBooks.length > 0 ? (
+          <ul className="list-group">
+            {userBooks.map(book => (
+              <li key={book.id} className="list-group-item">
+                <Link to={`/books/${book.id}`}>{book.title}</Link>
+              </li>
+            ))}
+          </ul>
+        ) : <p>No hay libros para mostrar.</p>}
+      </div>
+
+      <div className="mt-4">
+        <h3>Últimos Videos</h3>
+        {userVideos.length > 0 ? (
+          <ul className="list-group">
+            {userVideos.map(video => (
+              <li key={video.id} className="list-group-item">
+                <Link to={`/videos/${video.id}`}>{video.title}</Link>
+              </li>
+            ))}
+          </ul>
+        ) : <p>No hay videos para mostrar.</p>}
+      </div>
+
+      <div className="mt-4">
+        <h3>Últimas Películas</h3>
+        {userMovies.length > 0 ? (
+          <ul className="list-group">
+            {userMovies.map(movie => (
+              <li key={movie.id} className="list-group-item">
+                <Link to={`/movies/${movie.id}`}>{movie.title}</Link>
+              </li>
+            ))}
+          </ul>
+        ) : <p>No hay películas para mostrar.</p>}
+      </div>
+
+      <div className="mt-4">
+        <h3>Últimos Videoclips</h3>
+        {userMusic.length > 0 ? (
+          <ul className="list-group">
+            {userMusic.map(clip => (
+              <li key={clip.id} className="list-group-item">
+                <Link to={`/music/${clip.id}`}>{clip.title}</Link>
+              </li>
+            ))}
+          </ul>
+        ) : <p>No hay videoclips para mostrar.</p>}
+      </div>
     </div>
   );
 }

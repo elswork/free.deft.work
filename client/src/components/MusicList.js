@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const MusicList = ({ db, auth }) => {
@@ -7,29 +7,40 @@ const MusicList = ({ db, auth }) => {
   const [loading, setLoading] = useState(true);
   const [showTopContent, setShowTopContent] = useState(false);
 
-  useEffect(() => {
-    const fetchMusic = async () => {
-      if (!db) return;
-      setLoading(true);
-      try {
-        const musicCollection = collection(db, 'music');
-        let q;
-        if (showTopContent) {
-          q = query(musicCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
-        } else {
-          q = query(musicCollection, orderBy('createdAt', 'desc'));
-        }
-        const querySnapshot = await getDocs(q);
-        const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setMusic(musicData);
-      } catch (error) {
-        console.error("Error fetching music: ", error);
+  const fetchMusic = useCallback(async () => {
+    if (!db) return;
+    setLoading(true);
+    try {
+      const musicCollection = collection(db, 'music');
+      let q;
+      if (showTopContent) {
+        q = query(musicCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
+      } else {
+        q = query(musicCollection, orderBy('createdAt', 'desc'));
       }
-      setLoading(false);
-    };
-
-    fetchMusic();
+      const querySnapshot = await getDocs(q);
+      const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMusic(musicData);
+    } catch (error) {
+      console.error("Error fetching music: ", error);
+    }
+    setLoading(false);
   }, [db, showTopContent]);
+
+  useEffect(() => {
+    fetchMusic();
+  }, [fetchMusic]);
+
+  const handleDelete = async (clipId) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este videoclip?")) {
+      try {
+        await deleteDoc(doc(db, "music", clipId));
+        fetchMusic();
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+      }
+    }
+  };
 
   if (loading) {
     return <p>Cargando videoclips...</p>;
@@ -65,6 +76,11 @@ const MusicList = ({ db, auth }) => {
                   <Link to={`/music/${clip.id}`} className="btn btn-primary mt-2">
                     Ver Videoclip
                   </Link>
+                  {auth.currentUser && auth.currentUser.uid === clip.ownerId && (
+                    <button onClick={() => handleDelete(clip.id)} className="btn btn-danger mt-2 ms-2">
+                      Eliminar
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
