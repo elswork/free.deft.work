@@ -116,6 +116,9 @@ function App() {
                 <Link className="btn btn-outline-primary mx-1" to="/"><FontAwesomeIcon icon={faHome} /> Inicio</Link>
               </li>
               <li className="nav-item">
+                <Link className="btn btn-outline-primary mx-1" to="/libro"><FontAwesomeIcon icon={faBook} /> Libro</Link>
+              </li>
+              <li className="nav-item">
                 <Link className="btn btn-outline-primary mx-1" to="/videos"><FontAwesomeIcon icon={faVideo} /> Videoteca</Link>
               </li>
               <li className="nav-item">
@@ -130,11 +133,6 @@ function App() {
               {user && (
                 <li className="nav-item">
                   <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
-                </li>
-              )}
-              {user && (
-                <li className="nav-item">
-                  <Link className="btn btn-outline-info mx-1" to="/admin/youtube-search"><FontAwesomeIcon icon={faSearch} /> Buscar Contenido</Link>
                 </li>
               )}
               {user && (
@@ -163,10 +161,14 @@ function App() {
             <Route path="/" exact render={(props) => (
               <>
                 {user ? (
-                  <div className="text-center">
-                    <p className="lead">¡Bienvenido, {user.displayName}!</p>
-                    <BookList auth={auth} db={db} storage={storage} />
-                  </div>
+                  <>
+                    <div className="card p-4 shadow-sm mx-auto mb-4" style={{ maxWidth: '800px' }}>
+                      <h2 className="card-title text-center mb-4">📚 Free Deft Work: El Poder de un Libro Viajero 🚀</h2>
+                      <p className="text-justify">¡Bienvenido a <strong>Free Deft Work: El Poder de un Libro Viajero</strong>! Esta plataforma transforma la forma en que interactúas con los libros, convirtiendo cada ejemplar en un puente entre personas. Aquí, cada libro que compartes, equipado con su <strong>código QR único</strong> 🏷️, se suma a una red de conexiones que se extiende con cada paso de mano en mano, ya sea por donación, préstamo o como un regalo. Podrás seguir el recorrido de tus libros 🗺️, descubrir quién los ha leído y las impresiones que han dejado. 💖</p>
+                      <p className="text-justify">Para comenzar, es muy sencillo: <strong>da de alta tu libro en nuestro formulario web</strong> 📝. Ahora, puedes <strong>escanear el ISBN de tu libro con la cámara</strong> 📸, y la aplicación autocompletará automáticamente el título, autor, descripción y hasta la portada, ¡haciendo el proceso mucho más rápido y profesional! Una vez registrado, <strong>imprime las etiquetas con el código QR</strong> 🖨️ que el sistema generará y <strong>pégaselas directamente al libro</strong>. Así de fácil, tu libro estará listo para viajar y compartir su historia. 📖 Nuestra aplicación web está diseñada para hacer que la gestión y el intercambio de libros sean sencillos y enriquecedores. Simplemente escanea el código QR de un libro para acceder a todos sus detalles y su historial de viajes. 📲 Además, te invitamos a unirte a nuestra <strong>comunidad vibrante</strong> en el foro interactivo. 🗣️ Allí podrás compartir tus ideas, debatir sobre lecturas, descubrir nuevos títulos y conectar con otros amantes de los libros, extendiendo la vida de cada ejemplar más allá de sus páginas. ✨</p>
+                    </div>
+                    <YouTubeSearch db={db} auth={auth} />
+                  </>
                 ) : (
                   <>
                     {showWelcomeSection && (
@@ -184,6 +186,12 @@ function App() {
                   </>
                 )}
               </>
+            )} />
+            <Route path="/libro" exact render={(props) => (
+              <div className="text-center">
+                <p className="lead">¡Bienvenido, {user.displayName}!</p>
+                <BookList auth={auth} db={db} storage={storage} />
+              </div>
             )} />
             <Route path="/videos/:videoId" component={() => <VideoDetail db={db} />} />
             <Route path="/videos" component={() => <VideoList db={db} auth={auth} />} />
