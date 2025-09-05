@@ -32,6 +32,7 @@
     "sitemap": "node generate-sitemap.js",
     "build": "npm run sitemap && react-scripts build && node inject-env.js",
     "test": "react-scripts test",
+    "test:e2e": "playwright test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -51,5 +52,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
   }
 }
