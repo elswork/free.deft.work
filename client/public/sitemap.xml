@@ -21,6 +21,11 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://free.deft.work/PZMKO</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
     <loc>https://free.deft.work/LYPLV</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -42,6 +47,16 @@
   </url>
   <url>
     <loc>https://free.deft.work/7YNIO</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://free.deft.work/LJNOS</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://free.deft.work/K8KAA</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>

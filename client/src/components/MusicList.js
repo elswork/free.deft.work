@@ -5,19 +5,13 @@ import { Link } from 'react-router-dom';
 const MusicList = ({ db, auth }) => {
   const [music, setMusic] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showTopContent, setShowTopContent] = useState(false);
 
   const fetchMusic = useCallback(async () => {
     if (!db) return;
     setLoading(true);
     try {
       const musicCollection = collection(db, 'music');
-      let q;
-      if (showTopContent) {
-        q = query(musicCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
-      } else {
-        q = query(musicCollection, orderBy('createdAt', 'desc'));
-      }
+      const q = query(musicCollection, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMusic(musicData);
@@ -25,7 +19,7 @@ const MusicList = ({ db, auth }) => {
       console.error("Error fetching music: ", error);
     }
     setLoading(false);
-  }, [db, showTopContent]);
+  }, [db]);
 
   useEffect(() => {
     fetchMusic();
@@ -49,20 +43,6 @@ const MusicList = ({ db, auth }) => {
   return (
     <div className="mt-4">
       <h2 className="mb-3">Videoclips</h2>
-      <div className="d-flex justify-content-end mb-3">
-        <div className="form-check form-switch">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="flexSwitchCheckDefault"
-            checked={showTopContent}
-            onChange={(e) => setShowTopContent(e.target.checked)}
-          />
-          <label className="form-check-label" htmlFor="flexSwitchCheckDefault">
-            Mostrar Contenido Top
-          </label>
-        </div>
-      </div>
       <div className="row">
         {music.length > 0 ? (
           music.map((clip) => (

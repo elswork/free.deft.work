@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faTrashAlt, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 function MusicDetail({ db, auth }) {
   const { musicId } = useParams();
@@ -14,8 +14,6 @@ function MusicDetail({ db, auth }) {
   const [ownerName, setOwnerName] = useState('');
   const [ownerFollowersCount, setOwnerFollowersCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [isTopContent, setIsTopContent] = useState(false);
-  const [topOrder, setTopOrder] = useState('');
 
   // Función para renderizar texto con enlaces clicables
   const renderTextWithLinks = (text) => {
@@ -38,8 +36,6 @@ function MusicDetail({ db, auth }) {
         if (docSnap.exists()) {
           const clipData = docSnap.data();
           setClip(clipData);
-          setIsTopContent(clipData.isTopContent || false);
-          setTopOrder(clipData.topOrder || '');
 
           if (clipData.ownerId) {
             const ownerRef = doc(db, "users", clipData.ownerId);
@@ -214,22 +210,6 @@ function MusicDetail({ db, auth }) {
     }
   };
 
-  const handleUpdateTopContent = async () => {
-    if (!auth.currentUser || !clip || auth.currentUser.uid !== clip.ownerId) return;
-
-    try {
-      const clipRef = doc(db, "music", clip.id);
-      await updateDoc(clipRef, {
-        isTopContent: isTopContent,
-        topOrder: isTopContent ? (Number(topOrder) || 9999) : null // Set to null if not top content
-      });
-      alert("Contenido top actualizado.");
-    } catch (error) {
-      console.error("Error actualizando contenido top:", error);
-      alert("Error al actualizar contenido top.");
-    }
-  };
-
   if (loading) {
     return <div className="text-center mt-5">Cargando videoclip...</div>;
   }
@@ -272,40 +252,6 @@ function MusicDetail({ db, auth }) {
               )
             )}
           </p>
-        )}
-
-        {auth.currentUser && clip.ownerId === auth.currentUser.uid && (
-          <div className="mt-3 p-3 border rounded bg-light">
-            <h4>Configuración de Contenido Top</h4>
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="isTopContentCheck"
-                checked={isTopContent}
-                onChange={(e) => setIsTopContent(e.target.checked)}
-              />
-              <label className="form-check-label" htmlFor="isTopContentCheck">
-                Marcar como Contenido Top
-              </label>
-            </div>
-            {isTopContent && (
-              <div className="mb-3">
-                <label htmlFor="topOrderInput" className="form-label">Orden en el Top Ranking:</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  id="topOrderInput"
-                  value={topOrder}
-                  onChange={(e) => setTopOrder(e.target.value)}
-                  placeholder="Ej: 1, 2, 3..."
-                />
-              </div>
-            )}
-            <button className="btn btn-success" onClick={handleUpdateTopContent}>
-              <FontAwesomeIcon icon={faSave} /> Guardar Configuración Top
-            </button>
-          </div>
         )}
       </div>
 

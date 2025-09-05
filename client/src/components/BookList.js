@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -137,7 +137,7 @@ function BookList({ auth, db, storage }) {
         setEditingBookId(null);
       } else {
         const webId = generateUniqueCode();
-        await addDoc(collection(db, "books"), { ...newBook, imageUrl, ownerId: auth.currentUser.uid, webId });
+        await addDoc(collection(db, "books"), { ...newBook, imageUrl, ownerId: auth.currentUser.uid, webId, createdAt: serverTimestamp() });
       }
       setNewBook({
         title: '',

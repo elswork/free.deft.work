@@ -5,19 +5,13 @@ import { Link } from 'react-router-dom';
 const MovieList = ({ db, auth }) => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showTopContent, setShowTopContent] = useState(false);
 
   const fetchMovies = useCallback(async () => {
     if (!db) return;
     setLoading(true);
     try {
       const moviesCollection = collection(db, 'movies');
-      let q;
-      if (showTopContent) {
-        q = query(moviesCollection, where('isTopContent', '==', true), orderBy('topOrder', 'asc'), orderBy('title', 'asc'));
-      } else {
-        q = query(moviesCollection, orderBy('createdAt', 'desc'));
-      }
+      const q = query(moviesCollection, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMovies(moviesData);
@@ -25,7 +19,7 @@ const MovieList = ({ db, auth }) => {
       console.error("Error fetching movies: ", error);
     }
     setLoading(false);
-  }, [db, showTopContent]);
+  }, [db]);
 
   useEffect(() => {
     fetchMovies();
@@ -49,20 +43,6 @@ const MovieList = ({ db, auth }) => {
   return (
     <div className="mt-4">
       <h2 className="mb-3">Películas</h2>
-      <div className="d-flex justify-content-end mb-3">
-        <div className="form-check form-switch">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="flexSwitchCheckDefault"
-            checked={showTopContent}
-            onChange={(e) => setShowTopContent(e.target.checked)}
-          />
-          <label className="form-check-label" htmlFor="flexSwitchCheckDefault">
-            Mostrar Contenido Top
-          </label>
-        </div>
-      </div>
       <div className="row">
         {movies.length > 0 ? (
           movies.map((movie) => (

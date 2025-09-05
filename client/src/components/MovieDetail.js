@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faTrashAlt, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 function MovieDetail({ db, auth }) {
   const { movieId } = useParams();
@@ -14,8 +14,6 @@ function MovieDetail({ db, auth }) {
   const [ownerName, setOwnerName] = useState('');
   const [ownerFollowersCount, setOwnerFollowersCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [isTopContent, setIsTopContent] = useState(false);
-  const [topOrder, setTopOrder] = useState('');
 
   // Función para renderizar texto con enlaces clicables
   const renderTextWithLinks = (text) => {
@@ -38,8 +36,6 @@ function MovieDetail({ db, auth }) {
         if (docSnap.exists()) {
           const movieData = docSnap.data();
           setMovie(movieData);
-          setIsTopContent(movieData.isTopContent || false);
-          setTopOrder(movieData.topOrder || '');
 
           if (movieData.ownerId) {
             const ownerRef = doc(db, "users", movieData.ownerId);
@@ -214,22 +210,6 @@ function MovieDetail({ db, auth }) {
     }
   };
 
-  const handleUpdateTopContent = async () => {
-    if (!auth.currentUser || !movie || auth.currentUser.uid !== movie.ownerId) return;
-
-    try {
-      const movieRef = doc(db, "movies", movie.id);
-      await updateDoc(movieRef, {
-        isTopContent: isTopContent,
-        topOrder: isTopContent ? (Number(topOrder) || 9999) : null // Set to null if not top content
-      });
-      alert("Contenido top actualizado.");
-    } catch (error) {
-      console.error("Error actualizando contenido top:", error);
-      alert("Error al actualizar contenido top.");
-    }
-  };
-
   if (loading) {
     return <div className="text-center mt-5">Cargando película...</div>;
   }
@@ -272,40 +252,6 @@ function MovieDetail({ db, auth }) {
               )
             )}
           </p>
-        )}
-
-        {auth.currentUser && movie.ownerId === auth.currentUser.uid && (
-          <div className="mt-3 p-3 border rounded bg-light">
-            <h4>Configuración de Contenido Top</h4>
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="isTopContentCheck"
-                checked={isTopContent}
-                onChange={(e) => setIsTopContent(e.target.checked)}
-              />
-              <label className="form-check-label" htmlFor="isTopContentCheck">
-                Marcar como Contenido Top
-              </label>
-            </div>
-            {isTopContent && (
-              <div className="mb-3">
-                <label htmlFor="topOrderInput" className="form-label">Orden en el Top Ranking:</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  id="topOrderInput"
-                  value={topOrder}
-                  onChange={(e) => setTopOrder(e.target.value)}
-                  placeholder="Ej: 1, 2, 3..."
-                />
-              </div>
-            )}
-            <button className="btn btn-success" onClick={handleUpdateTopContent}>
-              <FontAwesomeIcon icon={faSave} /> Guardar Configuración Top
-            </button>
-          </div>
         )}
       </div>
 
