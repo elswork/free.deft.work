@@ -6,7 +6,7 @@ import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faSignInAlt, faSignOutAlt, faUser, faBook, faBell, faVideo, faFilm, faMusic } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUser, faBook, faBell, faVideo, faFilm, faMusic, faGamepad, faGlobe } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
@@ -21,6 +21,8 @@ import MovieList from './components/MovieList';
 import MovieDetail from './components/MovieDetail';
 import MusicList from './components/MusicList';
 import MusicDetail from './components/MusicDetail';
+import VideojuegoList from './components/VideojuegoList';
+import WebList from './components/WebList';
 import './App.css';
 
 const app = initializeApp(firebaseConfig);
@@ -127,6 +129,12 @@ function App() {
                 <Link className="btn btn-outline-primary mx-1" to="/music"><FontAwesomeIcon icon={faMusic} /> Videoclips</Link>
               </li>
               <li className="nav-item">
+                <Link className="btn btn-outline-primary mx-1" to="/videojuegos"><FontAwesomeIcon icon={faGamepad} /> Videojuegos</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="btn btn-outline-primary mx-1" to="/webs"><FontAwesomeIcon icon={faGlobe} /> Webs</Link>
+              </li>
+              <li className="nav-item">
                 <a className="btn btn-outline-info mx-1" href="https://github.com/elswork/free.deft.work/blob/main/README.md" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} /> Acerca de</a>
               </li>
               {user && (
@@ -198,6 +206,8 @@ function App() {
             <Route path="/movies" render={(props) => <MovieList db={db} auth={auth} {...props} />} />
             <Route path="/music/:musicId" render={(props) => <MusicDetail db={db} auth={auth} {...props} />} />
             <Route path="/music" render={(props) => <MusicList db={db} auth={auth} {...props} />} />
+            <Route path="/videojuegos" render={(props) => <VideojuegoList db={db} auth={auth} {...props} />} />
+            <Route path="/webs" render={(props) => <WebList db={db} auth={auth} {...props} />} />
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
             <Route path="/profile/:userId" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
             <Route path="/admin/youtube-search" component={() => <YouTubeSearch db={db} auth={auth} />} />

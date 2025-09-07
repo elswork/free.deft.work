@@ -74,5 +74,19 @@ service cloud.firestore {
       allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) || request.auth.uid == resource.data.ownerId);
       allow delete: if request.auth.uid == resource.data.ownerId;
     }
+
+    match /videojuegos/{videojuegoId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) || request.auth.uid == resource.data.ownerId);
+      allow delete: if request.auth.uid == resource.data.ownerId;
+    }
+
+    match /webs/{webId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) || request.auth.uid == resource.data.ownerId);
+      allow delete: if request.auth.uid == resource.data.ownerId;
+    }
   }
 }

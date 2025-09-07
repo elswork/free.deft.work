@@ -3,9 +3,38 @@ const admin = require("firebase-admin");
 const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
 const axios = require("axios");
+const cheerio = require("cheerio");
 const cors = require("cors")({origin: true});
 
 admin.initializeApp();
+
+exports.extractImageFromUrl = onRequest({region: "europe-west1"}, (req, res) => {
+  cors(req, res, async () => {
+    const url = req.query.url;
+    if (!url) {
+      res.status(400).send("URL query parameter is required.");
+      return;
+    }
+
+    try {
+      const { data } = await axios.get(url);
+      const $ = cheerio.load(data);
+
+      let imageUrl = $('meta[property="og:image"]').attr('content');
+      if (!imageUrl) {
+        imageUrl = $('meta[name="twitter:image"]').attr('content');
+      }
+
+      if (imageUrl) {
+        res.status(200).json({ imageUrl });
+      } else {
+        res.status(404).send("No image found.");
+      }
+    } catch (error) {
+      res.status(500).send(`Error fetching URL: ${error.message}`);
+    }
+  });
+});
 
 exports.sendFollowNotification = onDocumentUpdated({
   document: "users/{userId}",

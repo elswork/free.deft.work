@@ -1,0 +1,129 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { Link } from 'react-router-dom';
+
+const VideojuegoList = ({ db, auth }) => {
+  const [videojuegos, setVideojuegos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newVideojuego, setNewVideojuego] = useState({ name: '', url: '', imageUrl: '' });
+
+  const fetchVideojuegos = useCallback(async () => {
+    if (!db) return;
+    setLoading(true);
+    try {
+      const videojuegosCollection = collection(db, 'videojuegos');
+      const q = query(videojuegosCollection);
+      const querySnapshot = await getDocs(q);
+      const videojuegosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setVideojuegos(videojuegosData);
+    } catch (error) {
+      console.error("Error fetching videojuegos: ", error);
+    }
+    setLoading(false);
+  }, [db]);
+
+  useEffect(() => {
+    fetchVideojuegos();
+  }, [fetchVideojuegos]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewVideojuego({ ...newVideojuego, [name]: value });
+  };
+
+  const handleUrlBlur = async (e) => {
+    const url = e.target.value;
+    if (!url) return;
+
+    try {
+      const functionUrl = `https://europe-west1-free-deft-work.cloudfunctions.net/extractImageFromUrl?url=${encodeURIComponent(url)}`;
+      const response = await fetch(functionUrl);
+      if (response.ok) {
+        const data = await response.json();
+        setNewVideojuego({ ...newVideojuego, imageUrl: data.imageUrl });
+      }
+    } catch (error) {
+      console.error("Error extracting image from URL: ", error);
+    }
+  };
+
+  const handleAddVideojuego = async (e) => {
+    e.preventDefault();
+    if (!newVideojuego.name || !newVideojuego.url) {
+      alert("Por favor, introduce un nombre y una URL.");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "videojuegos"), {
+        ...newVideojuego,
+        ownerId: auth.currentUser.uid,
+        createdAt: serverTimestamp(),
+      });
+      setNewVideojuego({ name: '', url: '', imageUrl: '' });
+      fetchVideojuegos();
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  };
+
+  const handleDelete = async (videojuegoId) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este videojuego?")) {
+      try {
+        await deleteDoc(doc(db, "videojuegos", videojuegoId));
+        fetchVideojuegos();
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+      }
+    }
+  };
+
+  if (loading) {
+    return <p>Cargando videojuegos...</p>;
+  }
+
+  return (
+    <div className="mt-4">
+      <h2 className="mb-3">Añadir Nuevo Videojuego</h2>
+      <form onSubmit={handleAddVideojuego} className="mb-5">
+        <div className="mb-3">
+          <input type="text" name="name" className="form-control" placeholder="Nombre del videojuego" value={newVideojuego.name} onChange={handleInputChange} required />
+        </div>
+        <div className="mb-3">
+          <input type="url" name="url" className="form-control" placeholder="URL del videojuego" value={newVideojuego.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
+        </div>
+        {newVideojuego.imageUrl && (
+          <div className="mb-3">
+            <img src={newVideojuego.imageUrl} alt="Preview" style={{ maxWidth: '200px' }} />
+          </div>
+        )}
+        <button type="submit" className="btn btn-primary">Añadir Videojuego</button>
+      </form>
+
+      <h2 className="mb-3">Videojuegos</h2>
+      <div className="row">
+        {videojuegos.length > 0 ? (
+          videojuegos.map((videojuego) => (
+            <div key={videojuego.id} className="col-md-4 mb-4">
+              <div className="card h-100">
+                {videojuego.imageUrl && <img src={videojuego.imageUrl} className="card-img-top" alt={videojuego.name} style={{ height: '200px', objectFit: 'cover' }} />}
+                <div className="card-body">
+                  <h5 className="card-title">{videojuego.name}</h5>
+                  <p className="card-text"><a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.url}</a></p>
+                  {auth.currentUser && auth.currentUser.uid === videojuego.ownerId && (
+                    <button onClick={() => handleDelete(videojuego.id)} className="btn btn-danger mt-2 ms-2">
+                      Eliminar
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p>No hay videojuegos en la colección.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default VideojuegoList;
