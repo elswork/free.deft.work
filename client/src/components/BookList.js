@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, serverTimestamp, getDocs, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faShareAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import axios from 'axios';
-
-
 
 // Function to generate a unique 5-character alphanumeric code
 const generateUniqueCode = () => {
@@ -136,8 +134,12 @@ function BookList({ auth, db, storage }) {
         await updateDoc(bookRef, { ...newBook, imageUrl });
         setEditingBookId(null);
       } else {
+        const userBooksQuery = query(collection(db, "books"), where("ownerId", "==", auth.currentUser.uid));
+        const userBooksSnapshot = await getDocs(userBooksQuery);
+        const userBookCount = userBooksSnapshot.size;
+
         const webId = generateUniqueCode();
-        await addDoc(collection(db, "books"), { ...newBook, imageUrl, ownerId: auth.currentUser.uid, webId, createdAt: serverTimestamp() });
+        await addDoc(collection(db, "books"), { ...newBook, imageUrl, ownerId: auth.currentUser.uid, webId, createdAt: serverTimestamp(), order: userBookCount });
       }
       setNewBook({
         title: '',

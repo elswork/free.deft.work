@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 function UserProfile({ auth, db, storage }) {
@@ -17,6 +17,8 @@ function UserProfile({ auth, db, storage }) {
   const [userVideos, setUserVideos] = useState([]);
   const [userMovies, setUserMovies] = useState([]);
   const [userMusic, setUserMusic] = useState([]);
+  const [userWebs, setUserWebs] = useState([]);
+  const [userVideojuegos, setUserVideojuegos] = useState([]);
 
   const isCurrentUserProfile = auth.currentUser && auth.currentUser.uid === userId;
 
@@ -58,6 +60,8 @@ function UserProfile({ auth, db, storage }) {
         videos: setUserVideos,
         movies: setUserMovies,
         music: setUserMusic,
+        webs: setUserWebs,
+        videojuegos: setUserVideojuegos,
       };
 
       for (const [collectionName, setter] of Object.entries(collections)) {
@@ -65,14 +69,28 @@ function UserProfile({ auth, db, storage }) {
           const q = query(
             collection(db, collectionName),
             where("ownerId", "==", userId),
-            orderBy("createdAt", "desc"),
-            limit(5)
+            orderBy("order", "asc"),
+            limit(100)
           );
           const querySnapshot = await getDocs(q);
           const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setter(items);
         } catch (error) {
-          console.error(`Error fetching user ${collectionName}:`, error);
+          console.error(`Error fetching user ${collectionName} by order:`, error);
+          // Fallback to sorting by createdAt if 'order' field is missing or causes an error
+          try {
+            const qFallback = query(
+              collection(db, collectionName),
+              where("ownerId", "==", userId),
+              orderBy("createdAt", "desc"),
+              limit(100)
+            );
+            const querySnapshotFallback = await getDocs(qFallback);
+            const itemsFallback = querySnapshotFallback.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setter(itemsFallback);
+          } catch (fallbackError) {
+            console.error(`Error fetching user ${collectionName} by createdAt:`, fallbackError);
+          }
         }
       }
     };
@@ -82,6 +100,73 @@ function UserProfile({ auth, db, storage }) {
       fetchUserContent();
     }
   }, [userId, db, auth.currentUser]);
+
+  const handleMove = (listName, index, direction) => {
+    const listStateSetters = {
+        books: setUserBooks,
+        videos: setUserVideos,
+        movies: setUserMovies,
+        music: setUserMusic,
+        webs: setUserWebs,
+        videojuegos: setUserVideojuegos,
+    };
+    const listStates = {
+        books: userBooks,
+        videos: userVideos,
+        movies: userMovies,
+        music: userMusic,
+        webs: userWebs,
+        videojuegos: userVideojuegos,
+    };
+
+    const list = listStates[listName];
+    const setList = listStateSetters[listName];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+
+    if (newIndex < 0 || newIndex >= list.length) {
+        return;
+    }
+
+    const newList = [...list];
+    const item = newList.splice(index, 1)[0];
+    newList.splice(newIndex, 0, item);
+
+    setList(newList);
+  };
+
+  const handleSaveOrder = async (listName) => {
+    if (!isCurrentUserProfile) return;
+
+    const listStates = {
+        books: userBooks,
+        videos: userVideos,
+        movies: userMovies,
+        music: userMusic,
+        webs: userWebs,
+        videojuegos: userVideojuegos,
+    };
+
+    const list = listStates[listName];
+    if (!list) return;
+
+    setLoading(true);
+    const batch = writeBatch(db);
+    list.forEach((item, index) => {
+        const docRef = doc(db, listName, item.id);
+        batch.update(docRef, { order: index });
+    });
+
+    try {
+        await batch.commit();
+        setNotification({ type: 'success', message: '¡Orden guardado con éxito!' });
+    } catch (error) {
+        console.error("Error saving order: ", error);
+        setNotification({ type: 'danger', message: 'Error al guardar el orden.' });
+    } finally {
+        setLoading(false);
+        setTimeout(() => setNotification({ type: '', message: '' }), 5000);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -128,52 +213,27 @@ function UserProfile({ auth, db, storage }) {
   };
 
   const handleFollowToggle = async () => {
-    console.log("handleFollowToggle called");
     if (!auth.currentUser) {
       alert("You must be logged in to follow users.");
-      console.log("Not logged in.");
       return;
     }
-    if (isCurrentUserProfile) {
-      console.log("Cannot follow own profile.");
-      return;
-    }
-
-    console.log("Current User ID:", auth.currentUser.uid);
-    console.log("User to Follow ID:", userId);
+    if (isCurrentUserProfile) return;
 
     const currentUserRef = doc(db, "users", auth.currentUser.uid);
     const userToFollowRef = doc(db, "users", userId);
 
     try {
       if (isFollowing) {
-        // Unfollow
-        console.log("Attempting to unfollow...");
-        await updateDoc(currentUserRef, {
-          following: arrayRemove(userId)
-        });
-        await updateDoc(userToFollowRef, {
-          followers: arrayRemove(auth.currentUser.uid),
-          followersCount: increment(-1)
-        });
+        await updateDoc(currentUserRef, { following: arrayRemove(userId) });
+        await updateDoc(userToFollowRef, { followers: arrayRemove(auth.currentUser.uid), followersCount: increment(-1) });
         setIsFollowing(false);
         setFollowersCount(prev => prev - 1);
-        console.log("Unfollow successful.");
       } else {
-        // Follow
-        console.log("Attempting to follow...");
-        await updateDoc(currentUserRef, {
-          following: arrayUnion(userId)
-        });
-        await updateDoc(userToFollowRef, {
-          followers: arrayUnion(auth.currentUser.uid),
-          followersCount: increment(1)
-        });
+        await updateDoc(currentUserRef, { following: arrayUnion(userId) });
+        await updateDoc(userToFollowRef, { followers: arrayUnion(auth.currentUser.uid), followersCount: increment(1) });
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);
-        console.log("Follow successful. Attempting to create notification...");
 
-        // Create notification for the followed user
         await addDoc(collection(db, "notifications"), {
           recipientId: userId,
           senderId: auth.currentUser.uid,
@@ -183,7 +243,6 @@ function UserProfile({ auth, db, storage }) {
           read: false,
           timestamp: serverTimestamp()
         });
-        console.log("Notification created successfully.");
       }
     } catch (err) {
       console.error("Error updating follow status:", err);
@@ -224,11 +283,6 @@ function UserProfile({ auth, db, storage }) {
       
       <div className="text-center mb-3">
         <p><strong>Seguidores:</strong> {followersCount} | <strong>Siguiendo:</strong> {followingCount}</p>
-        {console.log("Rendering button conditions:", {
-          currentUser: auth.currentUser,
-          userId: userId,
-          isCurrentUserProfile: isCurrentUserProfile
-        })}
         {auth.currentUser && !isCurrentUserProfile && (
           <button onClick={handleFollowToggle} className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`}>
             {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
@@ -285,12 +339,21 @@ function UserProfile({ auth, db, storage }) {
       </form>
 
       <div className="mt-5">
-        <h3>Últimos Libros</h3>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h3>Mis Libros</h3>
+          {isCurrentUserProfile && <button className="btn btn-primary btn-sm" onClick={() => handleSaveOrder('books')}>Guardar Orden</button>}
+        </div>
         {userBooks.length > 0 ? (
           <ul className="list-group">
-            {userBooks.map(book => (
-              <li key={book.id} className="list-group-item">
+            {userBooks.map((book, index) => (
+              <li key={book.id} className="list-group-item d-flex justify-content-between align-items-center">
                 <Link to={`/books/${book.id}`}>{book.title}</Link>
+                {isCurrentUserProfile && (
+                  <div>
+                    <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('books', index, 'up')} disabled={index === 0}>↑</button>
+                    <button className="btn btn-light btn-sm" onClick={() => handleMove('books', index, 'down')} disabled={index === userBooks.length - 1}>↓</button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -298,12 +361,21 @@ function UserProfile({ auth, db, storage }) {
       </div>
 
       <div className="mt-4">
-        <h3>Últimos Videos</h3>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h3>Mis Videos</h3>
+          {isCurrentUserProfile && <button className="btn btn-primary btn-sm" onClick={() => handleSaveOrder('videos')}>Guardar Orden</button>}
+        </div>
         {userVideos.length > 0 ? (
           <ul className="list-group">
-            {userVideos.map(video => (
-              <li key={video.id} className="list-group-item">
+            {userVideos.map((video, index) => (
+              <li key={video.id} className="list-group-item d-flex justify-content-between align-items-center">
                 <Link to={`/videos/${video.id}`}>{video.title}</Link>
+                {isCurrentUserProfile && (
+                  <div>
+                    <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('videos', index, 'up')} disabled={index === 0}>↑</button>
+                    <button className="btn btn-light btn-sm" onClick={() => handleMove('videos', index, 'down')} disabled={index === userVideos.length - 1}>↓</button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -311,12 +383,21 @@ function UserProfile({ auth, db, storage }) {
       </div>
 
       <div className="mt-4">
-        <h3>Últimas Películas</h3>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h3>Mis Películas</h3>
+          {isCurrentUserProfile && <button className="btn btn-primary btn-sm" onClick={() => handleSaveOrder('movies')}>Guardar Orden</button>}
+        </div>
         {userMovies.length > 0 ? (
           <ul className="list-group">
-            {userMovies.map(movie => (
-              <li key={movie.id} className="list-group-item">
+            {userMovies.map((movie, index) => (
+              <li key={movie.id} className="list-group-item d-flex justify-content-between align-items-center">
                 <Link to={`/movies/${movie.id}`}>{movie.title}</Link>
+                {isCurrentUserProfile && (
+                  <div>
+                    <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('movies', index, 'up')} disabled={index === 0}>↑</button>
+                    <button className="btn btn-light btn-sm" onClick={() => handleMove('movies', index, 'down')} disabled={index === userMovies.length - 1}>↓</button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -324,16 +405,69 @@ function UserProfile({ auth, db, storage }) {
       </div>
 
       <div className="mt-4">
-        <h3>Últimos Videoclips</h3>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h3>Mis Videoclips</h3>
+          {isCurrentUserProfile && <button className="btn btn-primary btn-sm" onClick={() => handleSaveOrder('music')}>Guardar Orden</button>}
+        </div>
         {userMusic.length > 0 ? (
           <ul className="list-group">
-            {userMusic.map(clip => (
-              <li key={clip.id} className="list-group-item">
+            {userMusic.map((clip, index) => (
+              <li key={clip.id} className="list-group-item d-flex justify-content-between align-items-center">
                 <Link to={`/music/${clip.id}`}>{clip.title}</Link>
+                {isCurrentUserProfile && (
+                  <div>
+                    <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('music', index, 'up')} disabled={index === 0}>↑</button>
+                    <button className="btn btn-light btn-sm" onClick={() => handleMove('music', index, 'down')} disabled={index === userMusic.length - 1}>↓</button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         ) : <p>No hay videoclips para mostrar.</p>}
+      </div>
+
+      <div className="mt-4">
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h3>Mis Videojuegos</h3>
+          {isCurrentUserProfile && <button className="btn btn-primary btn-sm" onClick={() => handleSaveOrder('videojuegos')}>Guardar Orden</button>}
+        </div>
+        {userVideojuegos.length > 0 ? (
+          <ul className="list-group">
+            {userVideojuegos.map((videojuego, index) => (
+              <li key={videojuego.id} className="list-group-item d-flex justify-content-between align-items-center">
+                <a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.name}</a>
+                {isCurrentUserProfile && (
+                  <div>
+                    <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('videojuegos', index, 'up')} disabled={index === 0}>↑</button>
+                    <button className="btn btn-light btn-sm" onClick={() => handleMove('videojuegos', index, 'down')} disabled={index === userVideojuegos.length - 1}>↓</button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : <p>No hay videojuegos para mostrar.</p>}
+      </div>
+
+      <div className="mt-4">
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h3>Mis Webs</h3>
+          {isCurrentUserProfile && <button className="btn btn-primary btn-sm" onClick={() => handleSaveOrder('webs')}>Guardar Orden</button>}
+        </div>
+        {userWebs.length > 0 ? (
+          <ul className="list-group">
+            {userWebs.map((web, index) => (
+              <li key={web.id} className="list-group-item d-flex justify-content-between align-items-center">
+                <a href={web.url} target="_blank" rel="noopener noreferrer">{web.name}</a>
+                {isCurrentUserProfile && (
+                  <div>
+                    <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('webs', index, 'up')} disabled={index === 0}>↑</button>
+                    <button className="btn btn-light btn-sm" onClick={() => handleMove('webs', index, 'down')} disabled={index === userWebs.length - 1}>↓</button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : <p>No hay webs para mostrar.</p>}
       </div>
     </div>
   );

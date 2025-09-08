@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const VideojuegoList = ({ db, auth }) => {
@@ -54,10 +54,15 @@ const VideojuegoList = ({ db, auth }) => {
       return;
     }
     try {
+      const userVideojuegosQuery = query(collection(db, "videojuegos"), where("ownerId", "==", auth.currentUser.uid));
+      const userVideojuegosSnapshot = await getDocs(userVideojuegosQuery);
+      const userVideojuegoCount = userVideojuegosSnapshot.size;
+
       await addDoc(collection(db, "videojuegos"), {
         ...newVideojuego,
         ownerId: auth.currentUser.uid,
         createdAt: serverTimestamp(),
+        order: userVideojuegoCount
       });
       setNewVideojuego({ name: '', url: '', imageUrl: '' });
       fetchVideojuegos();
@@ -86,10 +91,10 @@ const VideojuegoList = ({ db, auth }) => {
       <h2 className="mb-3">Añadir Nuevo Videojuego</h2>
       <form onSubmit={handleAddVideojuego} className="mb-5">
         <div className="mb-3">
-          <input type="text" name="name" className="form-control" placeholder="Nombre del videojuego" value={newVideojuego.name} onChange={handleInputChange} required />
+          <input type="url" name="url" className="form-control" placeholder="URL del videojuego" value={newVideojuego.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
         </div>
         <div className="mb-3">
-          <input type="url" name="url" className="form-control" placeholder="URL del videojuego" value={newVideojuego.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
+          <input type="text" name="name" className="form-control" placeholder="Nombre del videojuego" value={newVideojuego.name} onChange={handleInputChange} required />
         </div>
         {newVideojuego.imageUrl && (
           <div className="mb-3">

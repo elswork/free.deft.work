@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where } from 'firebase/firestore';
 
 const WebList = ({ db, auth }) => {
   const [webs, setWebs] = useState([]);
@@ -53,10 +53,15 @@ const WebList = ({ db, auth }) => {
       return;
     }
     try {
+      const userWebsQuery = query(collection(db, "webs"), where("ownerId", "==", auth.currentUser.uid));
+      const userWebsSnapshot = await getDocs(userWebsQuery);
+      const userWebCount = userWebsSnapshot.size;
+
       await addDoc(collection(db, "webs"), {
         ...newWeb,
         ownerId: auth.currentUser.uid,
         createdAt: serverTimestamp(),
+        order: userWebCount
       });
       setNewWeb({ name: '', url: '', imageUrl: '' });
       fetchWebs();
@@ -85,10 +90,10 @@ const WebList = ({ db, auth }) => {
       <h2 className="mb-3">Añadir Nueva Web</h2>
       <form onSubmit={handleAddWeb} className="mb-5">
         <div className="mb-3">
-          <input type="text" name="name" className="form-control" placeholder="Nombre de la web" value={newWeb.name} onChange={handleInputChange} required />
+          <input type="url" name="url" className="form-control" placeholder="URL de la web" value={newWeb.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
         </div>
         <div className="mb-3">
-          <input type="url" name="url" className="form-control" placeholder="URL de la web" value={newWeb.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
+          <input type="text" name="name" className="form-control" placeholder="Nombre de la web" value={newWeb.name} onChange={handleInputChange} required />
         </div>
         {newWeb.imageUrl && (
           <div className="mb-3">

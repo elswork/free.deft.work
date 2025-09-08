@@ -171,7 +171,7 @@ function App() {
                   <>
                     <div className="card p-4 shadow-sm mx-auto mb-4" style={{ maxWidth: '800px' }}>
                       <h2 className="card-title text-center mb-4">🎬 Free Deft Work: Tu Universo de Contenido 🚀</h2>
-                      <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videos, películas y videoclips</strong> de YouTube 🎥🎵.</p>
+                      <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videojuegos, webs, videos, películas y videoclips</strong> 🎮🌐🎥🎵.</p>
                       <p className="text-justify">Construye tu perfil, sigue a otros usuarios y explora un mundo de contenido curado por una comunidad apasionada. Escanea el ISBN de un libro 📸 para añadirlo a tu colección, o busca en YouTube para encontrar esa joya audiovisual que quieres compartir. En Free Deft Work, cada elemento que añades es una nueva oportunidad para conectar. ✨</p>
                     </div>
                     <YouTubeSearch db={db} auth={auth} />
@@ -181,7 +181,7 @@ function App() {
                     {showWelcomeSection && (
                       <div className="card p-4 shadow-sm mx-auto mb-4" style={{ maxWidth: '600px' }}>
                         <h2 className="card-title text-center mb-4">🎬 Free Deft Work: Tu Universo de Contenido 🚀</h2>
-                        <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videos, películas y videoclips</strong> de YouTube 🎥🎵.</p>
+                        <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videojuegos, webs, videos, películas y videoclips</strong> 🎮🌐🎥🎵.</p>
                         <p className="text-justify">Construye tu perfil, sigue a otros usuarios y explora un mundo de contenido curado por una comunidad apasionada. Para empezar, solo necesitas iniciar sesión.</p>
                         <button className="btn btn-primary w-100 mt-3" onClick={() => setShowWelcomeSection(false)}>Entendido 👍</button>
                       </div>

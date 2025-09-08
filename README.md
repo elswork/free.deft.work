@@ -4,17 +4,17 @@
 
 ## Conecta, Comparte y Descubre: Tu Universo de Contenido
 
-En Free Deft Work, cada pieza de contenido que compartes —ya sea un libro, una película, un videoclip o un video— se convierte en un puente para conectar con otras personas. No solo das nueva vida a una historia o una melodía, sino que tejes una red de conexiones culturales. Imagina esto: cada elemento que añades a tu colección puede ser descubierto por otros, iniciando conversaciones y creando una comunidad en torno a intereses compartidos.
+En Free Deft Work, cada pieza de contenido que compartes —ya sea un libro, una película, un videojuego, un videoclip o un enlace web de interés— se convierte en un puente para conectar con otras personas. No solo das nueva vida a una historia, una melodía o una experiencia interactiva, sino que tejes una red de conexiones culturales. Imagina esto: cada elemento que añades a tu colección puede ser descubierto por otros, iniciando conversaciones y creando una comunidad en torno a intereses compartidos.
 
-Este innovador proyecto es una aplicación web diseñada para que puedas construir y compartir tu propio universo de contenido. Originalmente centrado en libros viajeros con códigos QR, hemos expandido la plataforma para incluir tus videos, películas y videoclips favoritos de YouTube. Ahora puedes catalogar, descubrir y compartir no solo lecturas, sino también contenido audiovisual, todo en un mismo lugar.
+Este innovador proyecto es una aplicación web diseñada para que puedas construir y compartir tu propio universo de contenido. Originalmente centrado en libros viajeros, hemos expandido la plataforma para que puedas catalogar todo tu universo digital: libros, videojuegos, películas, música y enlaces web. Ahora puedes organizar, descubrir y compartir no solo lecturas, sino también contenido audiovisual, interactivo y de la web, todo en un mismo lugar.
 
-La magia reside en la comunidad. Al participar, te unes a un espacio vibrante donde cada elemento tiene una historia que contar. La plataforma facilita la interacción, permitiéndote seguir a otros usuarios, ver qué están compartiendo y descubrir joyas ocultas a través de sus colecciones. Es un lugar para forjar nuevas amistades a través de pasiones compartidas por la lectura, el cine y la música.
+La magia reside en la comunidad. Al participar, te unes a un espacio vibrante donde cada elemento tiene una historia que contar. La plataforma facilita la interacción, permitiéndote seguir a otros usuarios, ver qué están compartiendo y descubrir joyas ocultas a través de sus colecciones. Es un lugar para forjar nuevas amistades a través de pasiones compartidas por la lectura, el cine, los videojuegos, la música y la web.
 
 Las ventajas de usar nuestra plataforma son inmensas:
 
-- **Fomenta la interacción social:** Cada libro, película o canción se convierte en un punto de encuentro, conectando a personas con gustos similares.
+- **Fomenta la interacción social:** Cada libro, película, videojuego o enlace se convierte en un punto de encuentro, conectando a personas con gustos similares.
 - **Construye tu identidad digital:** Muestra tus intereses y pasiones a través de las colecciones que creas en tu perfil.
-- **Descubre nuevo contenido:** Explora los perfiles de otros usuarios para encontrar tu próxima lectura, película o canción favorita.
+- **Descubre nuevo contenido:** Explora los perfiles de otros usuarios para encontrar tu próxima lectura, película, videojuego o web favorita.
 - **Centraliza tus intereses:** Organiza todo el contenido que te apasiona en un único lugar, creando un legado digital de tus gustos.
 - **Promueve una comunidad cultural:** Participa en un ecosistema donde el intercambio de ideas y recomendaciones enriquece a todos.
 
@@ -22,9 +22,11 @@ En esencia, este proyecto transforma el acto de compartir en una experiencia enr
 
 ## Características
 
-- **Gestión de Libros:** Añade libros manualmente o escaneando su ISBN para autocompletar los detalles con la API de Google Books. Genera códigos QR únicos para tus libros viajeros.
+- **Gestión de Libros:** Añade libros manualmente o escaneando su ISBN para autocompletar los detalles con la API de Google Books.
 - **Colección Multimedia:** Busca y añade videos, películas y videoclips directamente desde YouTube a tu perfil.
-- **Perfil de Usuario Personalizado:** Muestra tus colecciones de contenido, tus seguidores y a quiénes sigues.
+- **Gestión de Videojuegos:** Añade y cataloga tus videojuegos favoritos, creando una colección para compartir.
+- **Gestión de Enlaces Web:** Guarda y organiza enlaces a sitios web, artículos o recursos de interés.
+- **Perfil de Usuario Personalizado:** Muestra tus coleiones de contenido, tus seguidores y a quiénes sigues.
 - **Interacción Social:** Sigue a otros usuarios para descubrir su contenido y permite que otros te sigan.
 - **Eliminación de Contenido:** Gestiona tus colecciones eliminando los elementos que ya no desees compartir.
 - **Autenticación de Usuarios:** Sistema seguro de registro e inicio de sesión.
