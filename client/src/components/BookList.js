@@ -32,6 +32,7 @@ function BookList({ auth, db, storage }) {
   const [imageFile, setImageFile] = useState(null);
   const [editingBookId, setEditingBookId] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [isFormCollapsed, setIsFormCollapsed] = useState(true);
   const history = useHistory();
 
   const fetchBookDetails = useCallback(async (isbn) => {
@@ -151,6 +152,7 @@ function BookList({ auth, db, storage }) {
         imageUrl: '',
       });
       setImageFile(null);
+      setIsFormCollapsed(true);
     } catch (error) {
       console.error("Error adding/updating document: ", error);
     }
@@ -159,6 +161,7 @@ function BookList({ auth, db, storage }) {
   const handleEditClick = (book) => {
     setNewBook(book);
     setEditingBookId(book.id);
+    setIsFormCollapsed(false);
   };
 
   const handleDeleteClick = async (bookId, imageUrl) => {
@@ -182,60 +185,73 @@ function BookList({ auth, db, storage }) {
 
   return (
     <div className="mt-4">
-      <h2 className="mb-3">{editingBookId ? "Editar Libro" : "Añadir Nuevo Libro"}</h2>
-      <form onSubmit={handleAddOrUpdateBook} className="mb-5">
-        <div className="mb-3">
-          <input type="text" name="isbn" className="form-control" placeholder="ISBN" value={newBook.isbn} onChange={handleInputChange} />
-        </div>
-        <div className="mb-3">
-          <button type="button" className="btn btn-info" onClick={() => setShowScanner(!showScanner)}>
-            <FontAwesomeIcon icon={faCamera} /> {showScanner ? "Cerrar Escáner" : "Escanear ISBN"}
-          </button>
-        </div>
-        {showScanner && (
-          <div className="mb-3">
-            <div id="reader" style={{ width: "100%" }}></div>
+      <div className="accordion mb-3" id="addBookAccordion">
+        <div className="accordion-item">
+          <h2 className="accordion-header" id="headingOne">
+            <button className={`accordion-button ${isFormCollapsed ? 'collapsed' : ''}`} type="button" onClick={() => setIsFormCollapsed(!isFormCollapsed)} aria-expanded={!isFormCollapsed} aria-controls="collapseOne">
+              {editingBookId ? "Editar Libro" : "Añadir Nuevo Libro"}
+            </button>
+          </h2>
+          <div id="collapseOne" className={`accordion-collapse collapse ${!isFormCollapsed ? 'show' : ''}`} aria-labelledby="headingOne" data-bs-parent="#addBookAccordion">
+            <div className="accordion-body">
+              <form onSubmit={handleAddOrUpdateBook}>
+                <div className="mb-3">
+                  <input type="text" name="isbn" className="form-control" placeholder="ISBN" value={newBook.isbn} onChange={handleInputChange} />
+                </div>
+                <div className="mb-3">
+                  <button type="button" className="btn btn-info" onClick={() => setShowScanner(!showScanner)}>
+                    <FontAwesomeIcon icon={faCamera} /> {showScanner ? "Cerrar Escáner" : "Escanear ISBN"}
+                  </button>
+                </div>
+                {showScanner && (
+                  <div className="mb-3">
+                    <div id="reader" style={{ width: "100%" }}></div>
+                  </div>
+                )}
+                <div className="mb-3">
+                  <input type="text" name="title" className="form-control" placeholder="Título" value={newBook.title} onChange={handleInputChange} required />
+                </div>
+                <div className="mb-3">
+                  <input type="text" name="author" className="form-control" placeholder="Autor" value={newBook.author} onChange={handleInputChange} required />
+                </div>
+                <div className="mb-3">
+                  <input type="text" name="genre" className="form-control" placeholder="Género" value={newBook.genre} onChange={handleInputChange} />
+                </div>
+                <div className="mb-3">
+                  <textarea name="description" className="form-control" placeholder="Descripción" value={newBook.description} onChange={handleInputChange}></textarea>
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="status" className="form-label">Estado</label>
+                  <select name="status" id="status" className="form-control" value={newBook.status} onChange={handleInputChange}>
+                    <option value="Disponible">Disponible</option>
+                    <option value="De Viaje">De Viaje</option>
+                  </select>
+                </div>
+                <div className="mb-3">
+                  <input type="file" className="form-control" onChange={handleImageChange} />
+                </div>
+                <button type="submit" className="btn btn-primary">{editingBookId ? <><FontAwesomeIcon icon={faSave} /> Actualizar Libro</> : <><FontAwesomeIcon icon={faPlus} /> Añadir Libro</>}</button>
+                {editingBookId && (
+                  <button type="button" className="btn btn-secondary ms-2" onClick={() => {
+                    setEditingBookId(null);
+                    setNewBook({
+                      title: '',
+                      author: '',
+                      isbn: '',
+                      genre: '',
+                      description: '',
+                      status: 'disponible',
+                      imageUrl: '',
+                    });
+                    setImageFile(null);
+                    setIsFormCollapsed(true);
+                  }}><FontAwesomeIcon icon={faTimes} /> Cancelar Edición</button>
+                )}
+              </form>
+            </div>
           </div>
-        )}
-        <div className="mb-3">
-          <input type="text" name="title" className="form-control" placeholder="Título" value={newBook.title} onChange={handleInputChange} required />
         </div>
-        <div className="mb-3">
-          <input type="text" name="author" className="form-control" placeholder="Autor" value={newBook.author} onChange={handleInputChange} required />
-        </div>
-        <div className="mb-3">
-          <input type="text" name="genre" className="form-control" placeholder="Género" value={newBook.genre} onChange={handleInputChange} />
-        </div>
-        <div className="mb-3">
-          <textarea name="description" className="form-control" placeholder="Descripción" value={newBook.description} onChange={handleInputChange}></textarea>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="status" className="form-label">Estado</label>
-          <select name="status" id="status" className="form-control" value={newBook.status} onChange={handleInputChange}>
-            <option value="Disponible">Disponible</option>
-            <option value="De Viaje">De Viaje</option>
-          </select>
-        </div>
-        <div className="mb-3">
-          <input type="file" className="form-control" onChange={handleImageChange} />
-        </div>
-        <button type="submit" className="btn btn-primary">{editingBookId ? <><FontAwesomeIcon icon={faSave} /> Actualizar Libro</> : <><FontAwesomeIcon icon={faPlus} /> Añadir Libro</>}</button>
-        {editingBookId && (
-          <button type="button" className="btn btn-secondary ms-2" onClick={() => {
-            setEditingBookId(null);
-            setNewBook({
-              title: '',
-              author: '',
-              isbn: '',
-              genre: '',
-              description: '',
-              status: 'disponible',
-              imageUrl: '',
-            });
-            setImageFile(null);
-          }}><FontAwesomeIcon icon={faTimes} /> Cancelar Edición</button>
-        )}
-      </form>
+      </div>
 
       <h2 className="mb-3">Libros Disponibles</h2>
       <div className="mb-3">

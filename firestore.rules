@@ -7,7 +7,7 @@ service cloud.firestore {
       allow read: if true;
       allow update: if request.auth != null && (
         // El usuario puede actualizar su propio documento (p. ej., su lista de 'following' o su fcmToken)
-        (request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['following', 'fcmToken', 'username', 'email', 'profilePictureUrl'])) ||
+        (request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['following', 'fcmToken', 'username', 'email', 'profilePictureUrl', 'alias', 'location', 'bio'])) ||
         // Otro usuario puede actualizar la lista de seguidores y el contador de este usuario
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'followersCount'])) ||
         // Otro usuario puede añadir una notificación al documento de este usuario

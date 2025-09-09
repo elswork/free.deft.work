@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import YouTubeSearch from './YouTubeSearch';
 
 const MovieList = ({ db, auth }) => {
   const [movies, setMovies] = useState([]);
@@ -42,6 +43,7 @@ const MovieList = ({ db, auth }) => {
 
   return (
     <div className="mt-4">
+      <YouTubeSearch db={db} auth={auth} defaultCategory="movies" onAdd={fetchMovies} />
       <h2 className="mb-3">Películas</h2>
       <div className="row">
         {movies.length > 0 ? (
