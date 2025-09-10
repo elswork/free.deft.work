@@ -68,13 +68,12 @@ function App() {
         if (!userSnap.exists()) {
           console.log('New user, creating document...');
           await setDoc(userRef, { ...userData, followers: [], following: [] }, { merge: true });
-          setUser({ ...currentUser, ...userData });
         } else {
           console.log('Existing user, merging data...');
           await setDoc(userRef, userData, { merge: true });
-          setUser({ ...currentUser, ...userSnap.data() });
         }
 
+        setUser(currentUser);
       } else {
         setUser(null);
       }
@@ -140,7 +139,7 @@ function App() {
               </li>
               {user && (
                 <li className="nav-item">
-                  <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.alias || user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
+                  <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
                 </li>
               )}
               {user && (
@@ -175,7 +174,7 @@ function App() {
                       <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videojuegos, webs, videos, películas y videoclips</strong> 🎮🌐🎥🎵.</p>
                       <p className="text-justify">Construye tu perfil, sigue a otros usuarios y explora un mundo de contenido curado por una comunidad apasionada. Escanea el ISBN de un libro 📸 para añadirlo a tu colección, o busca en YouTube para encontrar esa joya audiovisual que quieres compartir. En Free Deft Work, cada elemento que añades es una nueva oportunidad para conectar. ✨</p>
                     </div>
-
+                    <YouTubeSearch db={db} auth={auth} />
                   </>
                 ) : (
                   <>
@@ -210,7 +209,7 @@ function App() {
             <Route path="/videojuegos" render={(props) => <VideojuegoList db={db} auth={auth} {...props} />} />
             <Route path="/webs" render={(props) => <WebList db={db} auth={auth} {...props} />} />
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
-            <Route path="/profile/:alias" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
+            <Route path="/profile/:userId" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
             <Route path="/admin/youtube-search" component={() => <YouTubeSearch db={db} auth={auth} />} />
             <Route path="/:webId" component={() => <BookDetail db={db} auth={auth} />} />
           </Switch>

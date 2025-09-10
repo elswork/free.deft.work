@@ -26,11 +26,7 @@ export const requestForToken = () => {
       }
     })
     .catch((err) => {
-      if (err.code === 'messaging/permission-blocked') {
-        console.log('Notification permission denied. FCM token will not be retrieved.');
-      } else {
-        console.log('An error occurred while retrieving token. ', err);
-      }
+      console.log('An error occurred while retrieving token. ', err);
       return null;
     });
 };

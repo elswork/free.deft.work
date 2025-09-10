@@ -4,12 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
-const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onAdd }) => {
+const YouTubeSearch = ({ db, auth }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [category, setCategory] = useState(defaultCategory);
+  const [category, setCategory] = useState('videos'); // Estado para la categoría
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -44,10 +44,6 @@ const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onAdd }) => {
         createdAt: serverTimestamp()
       });
       alert(`"${video.title}" ha sido añadido a la colección de ${category}.`);
-      setResults([]);
-      if (onAdd) {
-        onAdd();
-      }
     } catch (e) {
       console.error("Error adding document: ", e);
       alert("Error al añadir el video. Revisa la consola para más detalles.");
