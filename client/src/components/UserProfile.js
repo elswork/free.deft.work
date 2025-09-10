@@ -69,28 +69,13 @@ function UserProfile({ auth, db, storage }) {
           const q = query(
             collection(db, collectionName),
             where("ownerId", "==", userId),
-            orderBy("order", "asc"),
             limit(100)
           );
           const querySnapshot = await getDocs(q);
           const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setter(items);
         } catch (error) {
-          console.error(`Error fetching user ${collectionName} by order:`, error);
-          // Fallback to sorting by createdAt if 'order' field is missing or causes an error
-          try {
-            const qFallback = query(
-              collection(db, collectionName),
-              where("ownerId", "==", userId),
-              orderBy("createdAt", "desc"),
-              limit(100)
-            );
-            const querySnapshotFallback = await getDocs(qFallback);
-            const itemsFallback = querySnapshotFallback.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setter(itemsFallback);
-          } catch (fallbackError) {
-            console.error(`Error fetching user ${collectionName} by createdAt:`, fallbackError);
-          }
+          console.error(`Error fetching user ${collectionName}:`, error);
         }
       }
     };
@@ -347,7 +332,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userBooks.map((book, index) => (
               <li key={book.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <Link to={`/books/${book.id}`}>{book.title}</Link>
+                <span>{index + 1}. </span><Link to={`/books/${book.id}`}>{book.title}</Link>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('books', index, 'up')} disabled={index === 0}>↑</button>
@@ -369,7 +354,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userVideos.map((video, index) => (
               <li key={video.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <Link to={`/videos/${video.id}`}>{video.title}</Link>
+                <span>{index + 1}. </span><Link to={`/videos/${video.id}`}>{video.title}</Link>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('videos', index, 'up')} disabled={index === 0}>↑</button>
@@ -391,7 +376,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userMovies.map((movie, index) => (
               <li key={movie.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <Link to={`/movies/${movie.id}`}>{movie.title}</Link>
+                <span>{index + 1}. </span><Link to={`/movies/${movie.id}`}>{movie.title}</Link>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('movies', index, 'up')} disabled={index === 0}>↑</button>
@@ -413,7 +398,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userMusic.map((clip, index) => (
               <li key={clip.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <Link to={`/music/${clip.id}`}>{clip.title}</Link>
+                <span>{index + 1}. </span><Link to={`/music/${clip.id}`}>{clip.title}</Link>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('music', index, 'up')} disabled={index === 0}>↑</button>
@@ -435,7 +420,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userVideojuegos.map((videojuego, index) => (
               <li key={videojuego.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.name}</a>
+                <span>{index + 1}. </span><a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.name}</a>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('videojuegos', index, 'up')} disabled={index === 0}>↑</button>
@@ -457,7 +442,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userWebs.map((web, index) => (
               <li key={web.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <a href={web.url} target="_blank" rel="noopener noreferrer">{web.name}</a>
+                <span>{index + 1}. </span><a href={web.url} target="_blank" rel="noopener noreferrer">{web.name}</a>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('webs', index, 'up')} disabled={index === 0}>↑</button>
