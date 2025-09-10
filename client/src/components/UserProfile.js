@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 function UserProfile({ auth, db, storage }) {
-  const { userId } = useParams();
+  const { alias } = useParams();
   const [profile, setProfile] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
@@ -20,18 +20,64 @@ function UserProfile({ auth, db, storage }) {
   const [userWebs, setUserWebs] = useState([]);
   const [userVideojuegos, setUserVideojuegos] = useState([]);
 
-  const isCurrentUserProfile = auth.currentUser && auth.currentUser.uid === userId;
+  const isCurrentUserProfile = auth.currentUser && profile && auth.currentUser.uid === profile.id;
+
+  const fetchUserContent = useCallback(async (userId) => {
+    const collections = {
+      books: setUserBooks,
+      videos: setUserVideos,
+      movies: setUserMovies,
+      music: setUserMusic,
+      webs: setUserWebs,
+      videojuegos: setUserVideojuegos,
+    };
+
+    for (const [collectionName, setter] of Object.entries(collections)) {
+      try {
+        const q = query(
+          collection(db, collectionName),
+          where("ownerId", "==", userId),
+          limit(100)
+        );
+        const querySnapshot = await getDocs(q);
+        const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Ordenar por el campo 'order' si existe, si no, no hacer nada.
+        if (items.length > 0 && items[0].order !== undefined) {
+          items.sort((a, b) => a.order - b.order);
+        }
+        
+        setter(items);
+      } catch (error) {
+        console.error(`Error fetching user ${collectionName}:`, error);
+      }
+    }
+  }, [db]);
 
   useEffect(() => {
     const fetchProfile = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        const docRef = doc(db, "users", userId);
-        const docSnap = await getDoc(docRef);
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where("alias", "==", alias));
+        const querySnapshot = await getDocs(q);
 
-        if (docSnap.exists()) {
-          const profileData = docSnap.data();
-          setProfile(profileData);
+        let profileDoc;
+        if (!querySnapshot.empty) {
+          profileDoc = querySnapshot.docs[0];
+        } else {
+          const userDocRef = doc(db, 'users', alias);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            profileDoc = docSnap;
+          }
+        }
+
+        if (profileDoc) {
+          const profileData = profileDoc.data();
+          const userId = profileDoc.id;
+          setProfile({ ...profileData, id: userId });
           setFollowersCount(profileData.followers?.length || 0);
           setFollowingCount(profileData.following?.length || 0);
 
@@ -43,6 +89,7 @@ function UserProfile({ auth, db, storage }) {
               setIsFollowing(currentUserData.following?.includes(userId) || false);
             }
           }
+          fetchUserContent(userId);
         } else {
           setError("User not found.");
         }
@@ -54,37 +101,10 @@ function UserProfile({ auth, db, storage }) {
       }
     };
 
-    const fetchUserContent = async () => {
-      const collections = {
-        books: setUserBooks,
-        videos: setUserVideos,
-        movies: setUserMovies,
-        music: setUserMusic,
-        webs: setUserWebs,
-        videojuegos: setUserVideojuegos,
-      };
-
-      for (const [collectionName, setter] of Object.entries(collections)) {
-        try {
-          const q = query(
-            collection(db, collectionName),
-            where("ownerId", "==", userId),
-            limit(100)
-          );
-          const querySnapshot = await getDocs(q);
-          const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setter(items);
-        } catch (error) {
-          console.error(`Error fetching user ${collectionName}:`, error);
-        }
-      }
-    };
-
-    if (userId) {
+    if (alias) {
       fetchProfile();
-      fetchUserContent();
     }
-  }, [userId, db, auth.currentUser]);
+  }, [alias, db, auth.currentUser, fetchUserContent]);
 
   const handleMove = (listName, index, direction) => {
     const listStateSetters = {
@@ -170,11 +190,23 @@ function UserProfile({ auth, db, storage }) {
 
     setLoading(true);
     setError(null);
+
+    if (profile.alias) {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where("alias", "==", profile.alias));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty && querySnapshot.docs[0].id !== profile.id) {
+        setError("Este alias ya está en uso.");
+        setLoading(false);
+        return;
+      }
+    }
+
     let newProfilePictureUrl = profile.profilePictureUrl;
 
     if (imageFile) {
       try {
-        const storageRef = ref(storage, `profile_pictures/${userId}/${imageFile.name}`);
+        const storageRef = ref(storage, `profile_pictures/${profile.id}/${imageFile.name}`);
         await uploadBytes(storageRef, imageFile);
         newProfilePictureUrl = await getDownloadURL(storageRef);
       } catch (err) {
@@ -186,7 +218,10 @@ function UserProfile({ auth, db, storage }) {
     }
 
     try {
-      await setDoc(doc(db, "users", userId), { ...profile, profilePictureUrl: newProfilePictureUrl }, { merge: true });
+      await setDoc(doc(db, "users", profile.id), {
+        ...profile,
+        profilePictureUrl: newProfilePictureUrl
+      }, { merge: true });
       setNotification({ type: 'success', message: '¡Perfil guardado con éxito!' });
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -205,22 +240,22 @@ function UserProfile({ auth, db, storage }) {
     if (isCurrentUserProfile) return;
 
     const currentUserRef = doc(db, "users", auth.currentUser.uid);
-    const userToFollowRef = doc(db, "users", userId);
+    const userToFollowRef = doc(db, "users", profile.id);
 
     try {
       if (isFollowing) {
-        await updateDoc(currentUserRef, { following: arrayRemove(userId) });
+        await updateDoc(currentUserRef, { following: arrayRemove(profile.id) });
         await updateDoc(userToFollowRef, { followers: arrayRemove(auth.currentUser.uid), followersCount: increment(-1) });
         setIsFollowing(false);
         setFollowersCount(prev => prev - 1);
       } else {
-        await updateDoc(currentUserRef, { following: arrayUnion(userId) });
+        await updateDoc(currentUserRef, { following: arrayUnion(profile.id) });
         await updateDoc(userToFollowRef, { followers: arrayUnion(auth.currentUser.uid), followersCount: increment(1) });
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);
 
         await addDoc(collection(db, "notifications"), {
-          recipientId: userId,
+          recipientId: profile.id,
           senderId: auth.currentUser.uid,
           senderUsername: auth.currentUser.displayName || auth.currentUser.email,
           type: "follow",
@@ -291,6 +326,18 @@ function UserProfile({ auth, db, storage }) {
             value={profile.username}
             onChange={handleInputChange}
             required
+            disabled={!isCurrentUserProfile}
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="alias" className="form-label">Alias</label>
+          <input
+            type="text"
+            className="form-control"
+            id="alias"
+            name="alias"
+            value={profile.alias || ''}
+            onChange={handleInputChange}
             disabled={!isCurrentUserProfile}
           />
         </div>

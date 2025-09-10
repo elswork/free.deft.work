@@ -67,13 +67,15 @@ function App() {
         // Create or update user document
         if (!userSnap.exists()) {
           console.log('New user, creating document...');
-          await setDoc(userRef, { ...userData, followers: [], following: [] }, { merge: true });
+          const newUserProfile = { ...userData, followers: [], following: [] };
+          await setDoc(userRef, newUserProfile, { merge: true });
+          setUser({ ...currentUser, ...newUserProfile });
         } else {
           console.log('Existing user, merging data...');
           await setDoc(userRef, userData, { merge: true });
+          const fullUserProfile = { ...userSnap.data(), ...userData };
+          setUser({ ...currentUser, ...fullUserProfile });
         }
-
-        setUser(currentUser);
       } else {
         setUser(null);
       }
@@ -139,7 +141,7 @@ function App() {
               </li>
               {user && (
                 <li className="nav-item">
-                  <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
+                  <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.alias || user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
                 </li>
               )}
               {user && (
@@ -209,7 +211,7 @@ function App() {
             <Route path="/videojuegos" render={(props) => <VideojuegoList db={db} auth={auth} {...props} />} />
             <Route path="/webs" render={(props) => <WebList db={db} auth={auth} {...props} />} />
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
-            <Route path="/profile/:userId" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
+            <Route path="/profile/:alias" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
             <Route path="/admin/youtube-search" component={() => <YouTubeSearch db={db} auth={auth} />} />
             <Route path="/:webId" component={() => <BookDetail db={db} auth={auth} />} />
           </Switch>
