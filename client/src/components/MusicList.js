@@ -63,7 +63,9 @@ const MusicList = ({ db, auth }) => {
           music.map((clip) => (
             <div key={clip.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                <img src={clip.thumbnailUrl} className="card-img-top" alt={clip.title} style={{ height: '200px', objectFit: 'cover' }} />
+                <Link to={`/music/${clip.id}`}>
+                  <img src={clip.thumbnailUrl} className="card-img-top" alt={clip.title} style={{ height: '200px', objectFit: 'cover' }} />
+                </Link>
                 <div className="card-body">
                   <h5 className="card-title">{clip.title}</h5>
                   <p className="card-text text-muted">{clip.channelTitle}</p>

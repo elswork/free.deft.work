@@ -63,7 +63,9 @@ const VideoList = ({ db, auth }) => {
           videos.map((video) => (
             <div key={video.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                <img src={video.thumbnailUrl} className="card-img-top" alt={video.title} style={{ height: '200px', objectFit: 'cover' }} />
+                <Link to={`/videos/${video.id}`}>
+                  <img src={video.thumbnailUrl} className="card-img-top" alt={video.title} style={{ height: '200px', objectFit: 'cover' }} />
+                </Link>
                 <div className="card-body">
                   <h5 className="card-title">{video.title}</h5>
                   <p className="card-text text-muted">{video.channelTitle}</p>

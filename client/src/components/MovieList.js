@@ -63,7 +63,9 @@ const MovieList = ({ db, auth }) => {
           movies.map((movie) => (
             <div key={movie.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                <img src={movie.thumbnailUrl} className="card-img-top" alt={movie.title} style={{ height: '200px', objectFit: 'cover' }} />
+                <Link to={`/movies/${movie.id}`}>
+                  <img src={movie.thumbnailUrl} className="card-img-top" alt={movie.title} style={{ height: '200px', objectFit: 'cover' }} />
+                </Link>
                 <div className="card-body">
                   <h5 className="card-title">{movie.title}</h5>
                   <p className="card-text text-muted">{movie.channelTitle}</p>

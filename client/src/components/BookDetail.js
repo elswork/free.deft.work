@@ -253,21 +253,17 @@ function BookDetail({ db, auth }) {
   return (
     <div className="container mt-5">
       <Helmet>
-        {book && (
-          <>
-            <title>{book.title} - free.deft.work</title>
-            <meta name="description" content={book.description} />
-            <meta property="og:title" content={book.title} />
-            <meta property="og:description" content={book.description} />
-            <meta property="og:image" content={book.imageUrl} />
-            <meta property="og:url" content={`https://free.deft.work/${book.webId}`} />
-            <meta property="og:type" content="book" />
-            <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:title" content={book.title} />
-            <meta name="twitter:description" content={book.description} />
-            <meta name="twitter:image" content={book.imageUrl} />
-          </>
-        )}
+        <title>{book.title} - free.deft.work</title>
+        <meta name="description" content={book.description} />
+        <meta property="og:title" content={book.title} />
+        <meta property="og:description" content={book.description} />
+        <meta property="og:image" content={book.imageUrl} />
+        <meta property="og:url" content={`https://free.deft.work/${book.webId}`} />
+        <meta property="og:type" content="book" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={book.title} />
+        <meta name="twitter:description" content={book.description} />
+        <meta name="twitter:image" content={book.imageUrl} />
       </Helmet>
       <div className="card p-4 shadow-sm mb-4">
         <h2 className="card-title text-center mb-4">{book.title}</h2>

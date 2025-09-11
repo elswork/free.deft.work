@@ -109,7 +109,11 @@ const WebList = ({ db, auth }) => {
           webs.map((web) => (
             <div key={web.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                {web.imageUrl && <img src={web.imageUrl} className="card-img-top" alt={web.name} style={{ height: '200px', objectFit: 'cover' }} />}
+                {web.imageUrl && (
+                  <a href={web.url} target="_blank" rel="noopener noreferrer">
+                    <img src={web.imageUrl} className="card-img-top" alt={web.name} style={{ height: '200px', objectFit: 'cover' }} />
+                  </a>
+                )}
                 <div className="card-body">
                   <h5 className="card-title">{web.name}</h5>
                   <p className="card-text"><a href={web.url} target="_blank" rel="noopener noreferrer">{web.url}</a></p>

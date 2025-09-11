@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, serverTimestamp, getDocs, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt, faEdit, faTrashAlt, faPlus, faSave, faTimes, faShareAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -263,7 +263,9 @@ function BookList({ auth, db, storage }) {
         {filteredBooks.map((book) => (
           <div key={book.id} className="col-md-4 mb-4">
             <div className="card h-100">
-              {book.imageUrl && <img src={book.imageUrl} className="card-img-top" alt={book.title} style={{ height: '200px', objectFit: 'cover' }} />}
+              {book.imageUrl && <Link to={`/${book.webId}`}>
+                <img src={book.imageUrl} className="card-img-top" alt={book.title} style={{ height: '200px', objectFit: 'cover' }} />
+              </Link>}
               <div className="card-body">
                 <h5 className="card-title">{book.title}</h5>
                 <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>

@@ -110,7 +110,11 @@ const VideojuegoList = ({ db, auth }) => {
           videojuegos.map((videojuego) => (
             <div key={videojuego.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                {videojuego.imageUrl && <img src={videojuego.imageUrl} className="card-img-top" alt={videojuego.name} style={{ height: '200px', objectFit: 'cover' }} />}
+                {videojuego.imageUrl && (
+                  <a href={videojuego.url} target="_blank" rel="noopener noreferrer">
+                    <img src={videojuego.imageUrl} className="card-img-top" alt={videojuego.name} style={{ height: '200px', objectFit: 'cover' }} />
+                  </a>
+                )}
                 <div className="card-body">
                   <h5 className="card-title">{videojuego.name}</h5>
                   <p className="card-text"><a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.url}</a></p>
