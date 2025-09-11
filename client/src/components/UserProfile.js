@@ -379,7 +379,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userBooks.map((book, index) => (
               <li key={book.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>{index + 1}. </span><Link to={`/books/${book.id}`}>{book.title}</Link>
+                <span>{index + 1}. </span><Link to={`/${book.webId}`}>{book.title}</Link>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('books', index, 'up')} disabled={index === 0}>↑</button>
