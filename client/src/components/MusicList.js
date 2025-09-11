@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import YouTubeSearch from './YouTubeSearch';
 
 const MusicList = ({ db, auth }) => {
   const [music, setMusic] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [youtubeResults, setYoutubeResults] = useState([]);
 
   const fetchMusic = useCallback(async () => {
     if (!db) return;
@@ -25,6 +27,11 @@ const MusicList = ({ db, auth }) => {
     fetchMusic();
   }, [fetchMusic]);
 
+  const handleMusicAdded = () => {
+    fetchMusic();
+    setYoutubeResults([]);
+  };
+
   const handleDelete = async (clipId) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este videoclip?")) {
       try {
@@ -42,6 +49,14 @@ const MusicList = ({ db, auth }) => {
 
   return (
     <div className="mt-4">
+      <YouTubeSearch 
+        db={db} 
+        auth={auth} 
+        defaultCategory="music" 
+        onVideoAdded={handleMusicAdded}
+        results={youtubeResults}
+        onSearchResults={setYoutubeResults}
+      />
       <h2 className="mb-3">Videoclips</h2>
       <div className="row">
         {music.length > 0 ? (

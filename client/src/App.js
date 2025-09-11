@@ -176,7 +176,6 @@ function App() {
                       <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videojuegos, webs, videos, películas y videoclips</strong> 🎮🌐🎥🎵.</p>
                       <p className="text-justify">Construye tu perfil, sigue a otros usuarios y explora un mundo de contenido curado por una comunidad apasionada. Escanea el ISBN de un libro 📸 para añadirlo a tu colección, o busca en YouTube para encontrar esa joya audiovisual que quieres compartir. En Free Deft Work, cada elemento que añades es una nueva oportunidad para conectar. ✨</p>
                     </div>
-                    <YouTubeSearch db={db} auth={auth} />
                   </>
                 ) : (
                   <>

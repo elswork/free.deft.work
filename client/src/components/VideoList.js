@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import YouTubeSearch from './YouTubeSearch';
 
 const VideoList = ({ db, auth }) => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [youtubeResults, setYoutubeResults] = useState([]);
 
   const fetchVideos = useCallback(async () => {
     if (!db) return;
@@ -25,6 +27,11 @@ const VideoList = ({ db, auth }) => {
     fetchVideos();
   }, [fetchVideos]);
 
+  const handleVideoAdded = () => {
+    fetchVideos();
+    setYoutubeResults([]);
+  };
+
   const handleDelete = async (videoId) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este video?")) {
       try {
@@ -42,6 +49,14 @@ const VideoList = ({ db, auth }) => {
 
   return (
     <div className="mt-4">
+      <YouTubeSearch 
+        db={db} 
+        auth={auth} 
+        defaultCategory="videos" 
+        onVideoAdded={handleVideoAdded}
+        results={youtubeResults}
+        onSearchResults={setYoutubeResults}
+      />
       <h2 className="mb-3">Videos</h2>
       <div className="row">
         {videos.length > 0 ? (
