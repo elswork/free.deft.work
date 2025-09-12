@@ -13,7 +13,7 @@ const MusicList = ({ db, auth }) => {
     setLoading(true);
     try {
       const musicCollection = collection(db, 'music');
-      const q = query(musicCollection, orderBy('createdAt', 'desc'));
+      const q = query(musicCollection, orderBy('order', 'asc'));
       const querySnapshot = await getDocs(q);
       const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMusic(musicData);
@@ -60,21 +60,26 @@ const MusicList = ({ db, auth }) => {
       <h2 className="mb-3">Videoclips</h2>
       <div className="row">
         {music.length > 0 ? (
-          music.map((clip) => (
-            <div key={clip.id} className="col-md-4 mb-4">
+          music.map((song, index) => (
+            <div key={song.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                <Link to={`/music/${clip.id}`}>
-                  <img src={clip.thumbnailUrl} className="card-img-top" alt={clip.title} style={{ height: '200px', objectFit: 'cover' }} />
-                </Link>
+                <div className="position-relative">
+                  <Link to={`/music/${song.id}`}>
+                    <img src={song.thumbnailUrl} className="card-img-top" alt={song.title} style={{ height: '200px', objectFit: 'cover' }} />
+                  </Link>
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
+                    {song.order + 1}
+                  </span>
+                </div>
                 <div className="card-body">
-                  <h5 className="card-title">{clip.title}</h5>
-                  <p className="card-text text-muted">{clip.channelTitle}</p>
-                  {clip.isTopContent && <span className="badge bg-warning">Top {clip.topOrder}</span>}
-                  <Link to={`/music/${clip.id}`} className="btn btn-primary mt-2">
+                  <h5 className="card-title">{song.title}</h5>
+                  <p className="card-text text-muted">{song.channelTitle}</p>
+                  {song.isTopContent && <span className="badge bg-warning">Top {song.topOrder}</span>}
+                  <Link to={`/music/${song.id}`} className="btn btn-primary mt-2">
                     Ver Videoclip
                   </Link>
-                  {auth.currentUser && auth.currentUser.uid === clip.ownerId && (
-                    <button onClick={() => handleDelete(clip.id)} className="btn btn-danger mt-2 ms-2">
+                  {auth.currentUser && auth.currentUser.uid === song.ownerId && (
+                    <button onClick={() => handleDelete(song.id)} className="btn btn-danger mt-2 ms-2">
                       Eliminar
                     </button>
                   )}

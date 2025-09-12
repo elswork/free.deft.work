@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, serverTimestamp, getDocs, where } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, serverTimestamp, getDocs, where, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useHistory, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -66,7 +66,7 @@ function BookList({ auth, db, storage }) {
 
   useEffect(() => {
     if (auth.currentUser) {
-      const q = query(collection(db, "books"));
+      const q = query(collection(db, "books"), orderBy("order"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const booksData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -260,15 +260,19 @@ function BookList({ auth, db, storage }) {
         />
       </div>
       <div className="row">
-        {filteredBooks.map((book) => (
+        {filteredBooks.map((book, index) => (
           <div key={book.id} className="col-md-4 mb-4">
-            <div className="card h-100">
-              {book.imageUrl && <Link to={`/${book.webId}`}>
-                <img src={book.imageUrl} className="card-img-top" alt={book.title} style={{ height: '200px', objectFit: 'cover' }} />
-              </Link>}
-              <div className="card-body">
-                <h5 className="card-title">{book.title}</h5>
-                <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>
+                          <div className="card h-100">
+                            <div className="position-relative">
+                              {book.imageUrl && <Link to={`/${book.webId}`}>
+                                <img src={book.imageUrl} className="card-img-top" alt={book.title} style={{ height: '200px', objectFit: 'cover' }} />
+                              </Link>}
+                              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
+                                {book.order + 1}
+                              </span>
+                            </div>
+                            <div className="card-body">
+                              <h5 className="card-title">{book.title}</h5>                <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>
                 <p className="card-text">Estado: {book.status}</p>
                 <p className="card-text">Visitas: {book.views || 0}</p>
                 <p className="card-text"><strong>ID Web:</strong> <button className="btn btn-info btn-sm" onClick={() => history.push(`/${book.webId}`)}><FontAwesomeIcon icon={faExternalLinkAlt} /> {book.webId}</button></p>

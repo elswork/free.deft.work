@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where } from 'firebase/firestore';
+import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where, orderBy } from 'firebase/firestore';
 
 const WebList = ({ db, auth }) => {
   const [webs, setWebs] = useState([]);
@@ -11,7 +11,7 @@ const WebList = ({ db, auth }) => {
     setLoading(true);
     try {
       const websCollection = collection(db, 'webs');
-      const q = query(websCollection);
+      const q = query(websCollection, orderBy("order"));
       const querySnapshot = await getDocs(q);
       const websData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setWebs(websData);
@@ -106,14 +106,19 @@ const WebList = ({ db, auth }) => {
       <h2 className="mb-3">Webs</h2>
       <div className="row">
         {webs.length > 0 ? (
-          webs.map((web) => (
+          webs.map((web, index) => (
             <div key={web.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                {web.imageUrl && (
-                  <a href={web.url} target="_blank" rel="noopener noreferrer">
-                    <img src={web.imageUrl} className="card-img-top" alt={web.name} style={{ height: '200px', objectFit: 'cover' }} />
-                  </a>
-                )}
+                <div className="position-relative">
+                  {web.imageUrl && (
+                    <a href={web.url} target="_blank" rel="noopener noreferrer">
+                      <img src={web.imageUrl} className="card-img-top" alt={web.name} style={{ height: '200px', objectFit: 'cover' }} />
+                    </a>
+                  )}
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
+                    {web.order + 1}
+                  </span>
+                </div>
                 <div className="card-body">
                   <h5 className="card-title">{web.name}</h5>
                   <p className="card-text"><a href={web.url} target="_blank" rel="noopener noreferrer">{web.url}</a></p>

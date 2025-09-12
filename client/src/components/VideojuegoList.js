@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where } from 'firebase/firestore';
+import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where, orderBy } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const VideojuegoList = ({ db, auth }) => {
@@ -12,7 +12,7 @@ const VideojuegoList = ({ db, auth }) => {
     setLoading(true);
     try {
       const videojuegosCollection = collection(db, 'videojuegos');
-      const q = query(videojuegosCollection);
+      const q = query(videojuegosCollection, orderBy("order"));
       const querySnapshot = await getDocs(q);
       const videojuegosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVideojuegos(videojuegosData);
@@ -107,14 +107,19 @@ const VideojuegoList = ({ db, auth }) => {
       <h2 className="mb-3">Videojuegos</h2>
       <div className="row">
         {videojuegos.length > 0 ? (
-          videojuegos.map((videojuego) => (
+          videojuegos.map((videojuego, index) => (
             <div key={videojuego.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                {videojuego.imageUrl && (
-                  <a href={videojuego.url} target="_blank" rel="noopener noreferrer">
-                    <img src={videojuego.imageUrl} className="card-img-top" alt={videojuego.name} style={{ height: '200px', objectFit: 'cover' }} />
-                  </a>
-                )}
+                <div className="position-relative">
+                  {videojuego.imageUrl && (
+                    <a href={videojuego.url} target="_blank" rel="noopener noreferrer">
+                      <img src={videojuego.imageUrl} className="card-img-top" alt={videojuego.name} style={{ height: '200px', objectFit: 'cover' }} />
+                    </a>
+                  )}
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
+                    {videojuego.order + 1}
+                  </span>
+                </div>
                 <div className="card-body">
                   <h5 className="card-title">{videojuego.name}</h5>
                   <p className="card-text"><a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.url}</a></p>

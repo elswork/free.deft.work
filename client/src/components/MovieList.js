@@ -13,7 +13,7 @@ const MovieList = ({ db, auth }) => {
     setLoading(true);
     try {
       const moviesCollection = collection(db, 'movies');
-      const q = query(moviesCollection, orderBy('createdAt', 'desc'));
+      const q = query(moviesCollection, orderBy('order', 'asc'));
       const querySnapshot = await getDocs(q);
       const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMovies(moviesData);
@@ -60,12 +60,17 @@ const MovieList = ({ db, auth }) => {
       <h2 className="mb-3">Películas</h2>
       <div className="row">
         {movies.length > 0 ? (
-          movies.map((movie) => (
+          movies.map((movie, index) => (
             <div key={movie.id} className="col-md-4 mb-4">
               <div className="card h-100">
-                <Link to={`/movies/${movie.id}`}>
-                  <img src={movie.thumbnailUrl} className="card-img-top" alt={movie.title} style={{ height: '200px', objectFit: 'cover' }} />
-                </Link>
+                <div className="position-relative">
+                  <Link to={`/movies/${movie.id}`}>
+                    <img src={movie.thumbnailUrl} className="card-img-top" alt={movie.title} style={{ height: '200px', objectFit: 'cover' }} />
+                  </Link>
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
+                    {movie.order + 1}
+                  </span>
+                </div>
                 <div className="card-body">
                   <h5 className="card-title">{movie.title}</h5>
                   <p className="card-text text-muted">{movie.channelTitle}</p>

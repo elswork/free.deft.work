@@ -13,7 +13,7 @@ const VideoList = ({ db, auth }) => {
     setLoading(true);
     try {
       const videosCollection = collection(db, 'videos');
-      const q = query(videosCollection, orderBy('createdAt', 'desc'));
+      const q = query(videosCollection, orderBy('order', 'asc'));
       const querySnapshot = await getDocs(q);
       const videosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVideos(videosData);
@@ -60,12 +60,15 @@ const VideoList = ({ db, auth }) => {
       <h2 className="mb-3">Videos</h2>
       <div className="row">
         {videos.length > 0 ? (
-          videos.map((video) => (
+          videos.map((video, index) => (
             <div key={video.id} className="col-md-4 mb-4">
               <div className="card h-100">
                 <Link to={`/videos/${video.id}`}>
                   <img src={video.thumbnailUrl} className="card-img-top" alt={video.title} style={{ height: '200px', objectFit: 'cover' }} />
                 </Link>
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
+                  {video.order + 1}
+                </span>
                 <div className="card-body">
                   <h5 className="card-title">{video.title}</h5>
                   <p className="card-text text-muted">{video.channelTitle}</p>

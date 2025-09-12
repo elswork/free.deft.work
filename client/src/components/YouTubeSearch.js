@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 
 const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onVideoAdded, results, onSearchResults }) => {
   const [query, setQuery] = useState('');
@@ -38,10 +38,15 @@ const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onVideoAdded, res
     }
 
     try {
+      const userContentQuery = query(collection(db, category), where("ownerId", "==", auth.currentUser.uid));
+      const userContentSnapshot = await getDocs(userContentQuery);
+      const userContentCount = userContentSnapshot.size;
+
       await addDoc(collection(db, category), {
         ...video,
         ownerId: auth.currentUser.uid,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        order: userContentCount
       });
       alert(`"${video.title}" ha sido añadido a la colección de ${category}.`);
       if (onVideoAdded) {
