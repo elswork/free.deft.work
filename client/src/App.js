@@ -196,10 +196,16 @@ function App() {
               </>
             )} />
             <Route path="/libro" exact render={(props) => (
-              <div className="text-center">
-                <p className="lead">¡Bienvenido, {user.displayName}!</p>
-                <BookList auth={auth} db={db} storage={storage} />
-              </div>
+              user ? (
+                <div className="text-center">
+                  <p className="lead">¡Bienvenido, {user.displayName}!</p>
+                  <BookList auth={auth} db={db} storage={storage} />
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p>Cargando...</p>
+                </div>
+              )
             )} />
             <Route path="/videos/:videoId" render={(props) => <VideoDetail db={db} auth={auth} {...props} />} />
             <Route path="/videos" render={(props) => <VideoList db={db} auth={auth} {...props} />} />
