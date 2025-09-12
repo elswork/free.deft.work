@@ -3,6 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
+const linkify = (text) => {
+  if (!text) return null;
+  const urlRegex = /(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, i) => {
+    if (i % 2 === 1) { // URLs are at odd indices
+      return <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a>;
+    }
+    return part;
+  });
+};
+
 function UserProfile({ auth, db, storage }) {
   const { alias } = useParams();
   const [profile, setProfile] = useState(null);
@@ -42,7 +55,6 @@ function UserProfile({ auth, db, storage }) {
         const querySnapshot = await getDocs(q);
         const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // Ordenar por el campo 'order' si existe, si no, no hacer nada.
         if (items.length > 0 && items[0].order !== undefined) {
           items.sort((a, b) => a.order - b.order);
         }
@@ -218,10 +230,14 @@ function UserProfile({ auth, db, storage }) {
     }
 
     try {
-      await setDoc(doc(db, "users", profile.id), {
-        ...profile,
+      const userRef = doc(db, "users", profile.id);
+      await updateDoc(userRef, {
+        username: profile.username,
+        alias: profile.alias,
+        location: profile.location,
+        bio: profile.bio,
         profilePictureUrl: newProfilePictureUrl
-      }, { merge: true });
+      });
       setNotification({ type: 'success', message: '¡Perfil guardado con éxito!' });
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -355,15 +371,18 @@ function UserProfile({ auth, db, storage }) {
         </div>
         <div className="mb-3">
           <label htmlFor="bio" className="form-label">Biografía</label>
-          <textarea
-            className="form-control"
-            id="bio"
-            name="bio"
-            value={profile.bio}
-            onChange={handleInputChange}
-            rows="3"
-            disabled={!isCurrentUserProfile}
-          ></textarea>
+          {isCurrentUserProfile ? (
+            <textarea
+              className="form-control"
+              id="bio"
+              name="bio"
+              value={profile.bio || ''}
+              onChange={handleInputChange}
+              rows="3"
+            ></textarea>
+          ) : (
+            <p className="form-control-plaintext" style={{ whiteSpace: 'pre-wrap' }}>{linkify(profile.bio)}</p>
+          )}
         </div>
         {isCurrentUserProfile && (
           <button type="submit" className="btn btn-success w-100" disabled={loading}>Guardar Perfil</button>
