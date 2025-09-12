@@ -5,7 +5,7 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 
 const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onVideoAdded, results, onSearchResults }) => {
-  const [query, setQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [category, setCategory] = useState(defaultCategory);
@@ -13,7 +13,7 @@ const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onVideoAdded, res
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!query) return;
+    if (!searchTerm) return;
 
     setLoading(true);
     setError(null);
@@ -21,7 +21,7 @@ const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onVideoAdded, res
     setSelectedVideo(null); // Limpiar video seleccionado en nueva búsqueda
 
     try {
-      const response = await axios.get(`https://europe-west1-free-deft-work.cloudfunctions.net/searchYouTube?q=${query}`);
+      const response = await axios.get(`https://europe-west1-free-deft-work.cloudfunctions.net/searchYouTube?q=${searchTerm}`);
       onSearchResults(response.data);
     } catch (err) {
       setError('Error al realizar la búsqueda. Por favor, inténtalo de nuevo.');
@@ -110,8 +110,8 @@ const YouTubeSearch = ({ db, auth, defaultCategory = 'videos', onVideoAdded, res
               <input
                 type="text"
                 className="form-control"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar películas, videos, música..."
               />
               <button type="submit" className="btn btn-primary" disabled={loading}>
