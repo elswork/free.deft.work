@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import YouTubeSearch from './YouTubeSearch';
@@ -9,49 +9,31 @@ const MovieList = ({ db, auth }) => {
   const [youtubeResults, setYoutubeResults] = useState([]);
   const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
 
-  useEffect(() => {
+  const fetchMovies = useCallback(async () => {
     if (!db) return;
-
-    const fetchMovies = async () => {
-      setLoading(true);
-      try {
-        let q;
-        if (showOnlyMyItems && auth.currentUser) {
-          q = query(collection(db, 'movies'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
-        } else {
-          q = query(collection(db, 'movies'), orderBy('order', 'asc'));
-        }
-        const querySnapshot = await getDocs(q);
-        const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setMovies(moviesData);
-      } catch (error) {
-        console.error("Error fetching movies: ", error);
+    setLoading(true);
+    try {
+      let q;
+      if (showOnlyMyItems && auth.currentUser) {
+        q = query(collection(db, 'movies'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
+      } else {
+        q = query(collection(db, 'movies'), orderBy('order', 'asc'));
       }
-      setLoading(false);
-    };
-
-    fetchMovies();
+      const querySnapshot = await getDocs(q);
+      const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMovies(moviesData);
+    } catch (error) {
+      console.error("Error fetching movies: ", error);
+    }
+    setLoading(false);
   }, [db, auth.currentUser, showOnlyMyItems]);
 
+  useEffect(() => {
+    fetchMovies();
+  }, [fetchMovies]);
+
   const handleMovieAdded = () => {
-    const fetchAgain = async () => {
-      setLoading(true);
-      try {
-        let q;
-        if (showOnlyMyItems && auth.currentUser) {
-          q = query(collection(db, 'movies'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
-        } else {
-          q = query(collection(db, 'movies'), orderBy('order', 'asc'));
-        }
-        const querySnapshot = await getDocs(q);
-        const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setMovies(moviesData);
-      } catch (error) {
-        console.error("Error fetching movies: ", error);
-      }
-      setLoading(false);
-    };
-    fetchAgain();
+    fetchMovies();
     setYoutubeResults([]);
   };
 
@@ -59,7 +41,7 @@ const MovieList = ({ db, auth }) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar esta película?")) {
       try {
         await deleteDoc(doc(db, "movies", movieId));
-        handleMovieAdded(); // Re-fetch
+        fetchMovies();
       } catch (error) {
         console.error("Error deleting document: ", error);
       }
@@ -100,7 +82,7 @@ const MovieList = ({ db, auth }) => {
 
       <div className="row">
         {movies.length > 0 ? (
-          movies.map((movie, index) => (
+          movies.map((movie) => (
             <div key={movie.id} className="col-md-4 mb-4">
               <div className="card h-100">
                 <div className="position-relative">
