@@ -1,17 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where, orderBy } from 'firebase/firestore';
 
 const WebList = ({ db, auth }) => {
   const [webs, setWebs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newWeb, setNewWeb] = useState({ name: '', url: '', imageUrl: '' });
+  const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
 
-  const fetchWebs = useCallback(async () => {
+  const fetchWebs = async () => {
     if (!db) return;
     setLoading(true);
     try {
-      const websCollection = collection(db, 'webs');
-      const q = query(websCollection, orderBy("order"));
+      let q;
+      if (showOnlyMyItems && auth.currentUser) {
+        q = query(collection(db, 'webs'), where('ownerId', '==', auth.currentUser.uid), orderBy("order"));
+      } else {
+        q = query(collection(db, 'webs'), orderBy("order"));
+      }
       const querySnapshot = await getDocs(q);
       const websData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setWebs(websData);
@@ -19,11 +24,11 @@ const WebList = ({ db, auth }) => {
       console.error("Error fetching webs: ", error);
     }
     setLoading(false);
-  }, [db]);
+  };
 
   useEffect(() => {
     fetchWebs();
-  }, [fetchWebs]);
+  }, [db, auth.currentUser, showOnlyMyItems]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -87,23 +92,44 @@ const WebList = ({ db, auth }) => {
 
   return (
     <div className="mt-4">
-      <h2 className="mb-3">Añadir Nueva Web</h2>
-      <form onSubmit={handleAddWeb} className="mb-5">
-        <div className="mb-3">
-          <input type="url" name="url" className="form-control" placeholder="URL de la web" value={newWeb.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
-        </div>
-        <div className="mb-3">
-          <input type="text" name="name" className="form-control" placeholder="Nombre de la web" value={newWeb.name} onChange={handleInputChange} required />
-        </div>
-        {newWeb.imageUrl && (
-          <div className="mb-3">
-            <img src={newWeb.imageUrl} alt="Preview" style={{ maxWidth: '200px' }} />
-          </div>
-        )}
-        <button type="submit" className="btn btn-primary">Añadir Web</button>
-      </form>
+      {auth.currentUser && (
+        <>
+          <h2 className="mb-3">Añadir Nueva Web</h2>
+          <form onSubmit={handleAddWeb} className="mb-5">
+            <div className="mb-3">
+              <input type="url" name="url" className="form-control" placeholder="URL de la web" value={newWeb.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
+            </div>
+            <div className="mb-3">
+              <input type="text" name="name" className="form-control" placeholder="Nombre de la web" value={newWeb.name} onChange={handleInputChange} required />
+            </div>
+            {newWeb.imageUrl && (
+              <div className="mb-3">
+                <img src={newWeb.imageUrl} alt="Preview" style={{ maxWidth: '200px' }} />
+              </div>
+            )}
+            <button type="submit" className="btn btn-primary">Añadir Web</button>
+          </form>
+        </>
+      )}
 
       <h2 className="mb-3">Webs</h2>
+
+      {auth.currentUser && (
+        <div className="form-check form-switch mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="showOnlyMyWebs"
+            checked={showOnlyMyItems}
+            onChange={(e) => setShowOnlyMyItems(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="showOnlyMyWebs">
+            Mostrar solo mis webs
+          </label>
+        </div>
+      )}
+
       <div className="row">
         {webs.length > 0 ? (
           webs.map((web, index) => (

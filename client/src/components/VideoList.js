@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import YouTubeSearch from './YouTubeSearch';
@@ -7,28 +7,52 @@ const VideoList = ({ db, auth }) => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [youtubeResults, setYoutubeResults] = useState([]);
-
-  const fetchVideos = useCallback(async () => {
-    if (!db) return;
-    setLoading(true);
-    try {
-      const videosCollection = collection(db, 'videos');
-      const q = query(videosCollection, orderBy('order', 'asc'));
-      const querySnapshot = await getDocs(q);
-      const videosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setVideos(videosData);
-    } catch (error) {
-      console.error("Error fetching videos: ", error);
-    }
-    setLoading(false);
-  }, [db]);
+  const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
 
   useEffect(() => {
+    if (!db) return;
+
+    const fetchVideos = async () => {
+      setLoading(true);
+      try {
+        let q;
+        if (showOnlyMyItems && auth.currentUser) {
+          q = query(collection(db, 'videos'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
+        } else {
+          q = query(collection(db, 'videos'), orderBy('order', 'asc'));
+        }
+        const querySnapshot = await getDocs(q);
+        const videosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setVideos(videosData);
+      } catch (error) {
+        console.error("Error fetching videos: ", error);
+      }
+      setLoading(false);
+    };
+
     fetchVideos();
-  }, [fetchVideos]);
+  }, [db, auth.currentUser, showOnlyMyItems]);
 
   const handleVideoAdded = () => {
-    fetchVideos();
+    // Re-fetch videos after adding a new one
+    const fetchAgain = async () => {
+      setLoading(true);
+      try {
+        let q;
+        if (showOnlyMyItems && auth.currentUser) {
+          q = query(collection(db, 'videos'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
+        } else {
+          q = query(collection(db, 'videos'), orderBy('order', 'asc'));
+        }
+        const querySnapshot = await getDocs(q);
+        const videosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setVideos(videosData);
+      } catch (error) {
+        console.error("Error fetching videos: ", error);
+      }
+      setLoading(false);
+    };
+    fetchAgain();
     setYoutubeResults([]);
   };
 
@@ -36,7 +60,7 @@ const VideoList = ({ db, auth }) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este video?")) {
       try {
         await deleteDoc(doc(db, "videos", videoId));
-        fetchVideos();
+        handleVideoAdded(); // Re-fetch after delete
       } catch (error) {
         console.error("Error deleting document: ", error);
       }
@@ -58,6 +82,23 @@ const VideoList = ({ db, auth }) => {
         onSearchResults={setYoutubeResults}
       />
       <h2 className="mb-3">Videos</h2>
+
+      {auth.currentUser && (
+        <div className="form-check form-switch mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="showOnlyMyVideos"
+            checked={showOnlyMyItems}
+            onChange={(e) => setShowOnlyMyItems(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="showOnlyMyVideos">
+            Mostrar solo mis videos
+          </label>
+        </div>
+      )}
+
       <div className="row">
         {videos.length > 0 ? (
           videos.map((video, index) => (

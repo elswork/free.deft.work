@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import YouTubeSearch from './YouTubeSearch';
@@ -7,28 +7,51 @@ const MusicList = ({ db, auth }) => {
   const [music, setMusic] = useState([]);
   const [loading, setLoading] = useState(true);
   const [youtubeResults, setYoutubeResults] = useState([]);
-
-  const fetchMusic = useCallback(async () => {
-    if (!db) return;
-    setLoading(true);
-    try {
-      const musicCollection = collection(db, 'music');
-      const q = query(musicCollection, orderBy('order', 'asc'));
-      const querySnapshot = await getDocs(q);
-      const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMusic(musicData);
-    } catch (error) {
-      console.error("Error fetching music: ", error);
-    }
-    setLoading(false);
-  }, [db]);
+  const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
 
   useEffect(() => {
+    if (!db) return;
+
+    const fetchMusic = async () => {
+      setLoading(true);
+      try {
+        let q;
+        if (showOnlyMyItems && auth.currentUser) {
+          q = query(collection(db, 'music'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
+        } else {
+          q = query(collection(db, 'music'), orderBy('order', 'asc'));
+        }
+        const querySnapshot = await getDocs(q);
+        const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setMusic(musicData);
+      } catch (error) {
+        console.error("Error fetching music: ", error);
+      }
+      setLoading(false);
+    };
+
     fetchMusic();
-  }, [fetchMusic]);
+  }, [db, auth.currentUser, showOnlyMyItems]);
 
   const handleMusicAdded = () => {
-    fetchMusic();
+    const fetchAgain = async () => {
+      setLoading(true);
+      try {
+        let q;
+        if (showOnlyMyItems && auth.currentUser) {
+          q = query(collection(db, 'music'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
+        } else {
+          q = query(collection(db, 'music'), orderBy('order', 'asc'));
+        }
+        const querySnapshot = await getDocs(q);
+        const musicData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setMusic(musicData);
+      } catch (error) {
+        console.error("Error fetching music: ", error);
+      }
+      setLoading(false);
+    };
+    fetchAgain();
     setYoutubeResults([]);
   };
 
@@ -36,7 +59,7 @@ const MusicList = ({ db, auth }) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este videoclip?")) {
       try {
         await deleteDoc(doc(db, "music", clipId));
-        fetchMusic();
+        handleMusicAdded(); // Re-fetch
       } catch (error) {
         console.error("Error deleting document: ", error);
       }
@@ -58,6 +81,23 @@ const MusicList = ({ db, auth }) => {
         onSearchResults={setYoutubeResults}
       />
       <h2 className="mb-3">Videoclips</h2>
+
+      {auth.currentUser && (
+        <div className="form-check form-switch mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="showOnlyMyMusic"
+            checked={showOnlyMyItems}
+            onChange={(e) => setShowOnlyMyItems(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="showOnlyMyMusic">
+            Mostrar solo mis videoclips
+          </label>
+        </div>
+      )}
+
       <div className="row">
         {music.length > 0 ? (
           music.map((song, index) => (

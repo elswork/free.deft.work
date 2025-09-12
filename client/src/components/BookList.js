@@ -20,6 +20,7 @@ const generateUniqueCode = () => {
 function BookList({ auth, db, storage }) {
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -65,18 +66,18 @@ function BookList({ auth, db, storage }) {
   }, [fetchBookDetails]);
 
   useEffect(() => {
-    if (auth.currentUser) {
-      const q = query(collection(db, "books"), orderBy("order"));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const booksData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setBooks(booksData);
-      });
-      return () => unsubscribe();
+    let q;
+    if (showOnlyMyItems && auth.currentUser) {
+      q = query(collection(db, "books"), where("ownerId", "==", auth.currentUser.uid), orderBy("order"));
+    } else {
+      q = query(collection(db, "books"), orderBy("order"));
     }
-  }, [auth.currentUser, db]);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const booksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setBooks(booksData);
+    });
+    return () => unsubscribe();
+  }, [auth.currentUser, db, showOnlyMyItems]);
 
   useEffect(() => {
     let html5QrcodeScanner;
@@ -182,74 +183,93 @@ function BookList({ auth, db, storage }) {
 
   return (
     <div className="mt-4">
-      <div className="accordion mb-5" id="addBookAccordion">
-        <div className="accordion-item">
-          <h2 className="accordion-header" id="headingOne">
-            <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-              {editingBookId ? "Editar Libro" : "Añadir Nuevo Libro"}
-            </button>
-          </h2>
-          <div id="collapseOne" className="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#addBookAccordion">
-            <div className="accordion-body">
-              <form onSubmit={handleAddOrUpdateBook}>
-                <div className="mb-3">
-                  <input type="text" name="isbn" className="form-control" placeholder="ISBN" value={newBook.isbn} onChange={handleInputChange} />
-                </div>
-                <div className="mb-3">
-                  <button type="button" className="btn btn-info" onClick={() => setShowScanner(!showScanner)}>
-                    <FontAwesomeIcon icon={faCamera} /> {showScanner ? "Cerrar Escáner" : "Escanear ISBN"}
-                  </button>
-                </div>
-                {showScanner && (
+      {auth.currentUser && (
+        <div className="accordion mb-5" id="addBookAccordion">
+          <div className="accordion-item">
+            <h2 className="accordion-header" id="headingOne">
+              <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                {editingBookId ? "Editar Libro" : "Añadir Nuevo Libro"}
+              </button>
+            </h2>
+            <div id="collapseOne" className="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#addBookAccordion">
+              <div className="accordion-body">
+                <form onSubmit={handleAddOrUpdateBook}>
                   <div className="mb-3">
-                    <div id="reader" style={{ width: "100%" }}></div>
+                    <input type="text" name="isbn" className="form-control" placeholder="ISBN" value={newBook.isbn} onChange={handleInputChange} />
                   </div>
-                )}
-                <div className="mb-3">
-                  <input type="text" name="title" className="form-control" placeholder="Título" value={newBook.title} onChange={handleInputChange} required />
-                </div>
-                <div className="mb-3">
-                  <input type="text" name="author" className="form-control" placeholder="Autor" value={newBook.author} onChange={handleInputChange} required />
-                </div>
-                <div className="mb-3">
-                  <input type="text" name="genre" className="form-control" placeholder="Género" value={newBook.genre} onChange={handleInputChange} />
-                </div>
-                <div className="mb-3">
-                  <textarea name="description" className="form-control" placeholder="Descripción" value={newBook.description} onChange={handleInputChange}></textarea>
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="status" className="form-label">Estado</label>
-                  <select name="status" id="status" className="form-control" value={newBook.status} onChange={handleInputChange}>
-                    <option value="Disponible">Disponible</option>
-                    <option value="De Viaje">De Viaje</option>
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <input type="file" className="form-control" onChange={handleImageChange} />
-                </div>
-                <button type="submit" className="btn btn-primary">{editingBookId ? <><FontAwesomeIcon icon={faSave} /> Actualizar Libro</> : <><FontAwesomeIcon icon={faPlus} /> Añadir Libro</>}</button>
-                {editingBookId && (
-                  <button type="button" className="btn btn-secondary ms-2" onClick={() => {
-                    setEditingBookId(null);
-                    setNewBook({
-                      title: '',
-                      author: '',
-                      isbn: '',
-                      genre: '',
-                      description: '',
-                      status: 'disponible',
-                      imageUrl: '',
-                    });
-                    setImageFile(null);
-                  }}><FontAwesomeIcon icon={faTimes} /> Cancelar Edición</button>
-                )}
-              </form>
+                  <div className="mb-3">
+                    <button type="button" className="btn btn-info" onClick={() => setShowScanner(!showScanner)}>
+                      <FontAwesomeIcon icon={faCamera} /> {showScanner ? "Cerrar Escáner" : "Escanear ISBN"}
+                    </button>
+                  </div>
+                  {showScanner && (
+                    <div className="mb-3">
+                      <div id="reader" style={{ width: "100%" }}></div>
+                    </div>
+                  )}
+                  <div className="mb-3">
+                    <input type="text" name="title" className="form-control" placeholder="Título" value={newBook.title} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <input type="text" name="author" className="form-control" placeholder="Autor" value={newBook.author} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <input type="text" name="genre" className="form-control" placeholder="Género" value={newBook.genre} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <textarea name="description" className="form-control" placeholder="Descripción" value={newBook.description} onChange={handleInputChange}></textarea>
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="status" className="form-label">Estado</label>
+                    <select name="status" id="status" className="form-control" value={newBook.status} onChange={handleInputChange}>
+                      <option value="Disponible">Disponible</option>
+                      <option value="De Viaje">De Viaje</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <input type="file" className="form-control" onChange={handleImageChange} />
+                  </div>
+                  <button type="submit" className="btn btn-primary">{editingBookId ? <><FontAwesomeIcon icon={faSave} /> Actualizar Libro</> : <><FontAwesomeIcon icon={faPlus} /> Añadir Libro</>}</button>
+                  {editingBookId && (
+                    <button type="button" className="btn btn-secondary ms-2" onClick={() => {
+                      setEditingBookId(null);
+                      setNewBook({
+                        title: '',
+                        author: '',
+                        isbn: '',
+                        genre: '',
+                        description: '',
+                        status: 'disponible',
+                        imageUrl: '',
+                      });
+                      setImageFile(null);
+                    }}><FontAwesomeIcon icon={faTimes} /> Cancelar Edición</button>
+                  )}
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <h2 className="mb-3">Libros Disponibles</h2>
+      
+      {auth.currentUser && (
+        <div className="form-check form-switch mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="showOnlyMyItems"
+            checked={showOnlyMyItems}
+            onChange={(e) => setShowOnlyMyItems(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="showOnlyMyItems">
+            Mostrar solo mis libros
+          </label>
+        </div>
+      )}
+
       <div className="mb-3">
         <input
           type="text"
@@ -262,17 +282,18 @@ function BookList({ auth, db, storage }) {
       <div className="row">
         {filteredBooks.map((book, index) => (
           <div key={book.id} className="col-md-4 mb-4">
-                          <div className="card h-100">
-                            <div className="position-relative">
-                              {book.imageUrl && <Link to={`/${book.webId}`}>
-                                <img src={book.imageUrl} className="card-img-top" alt={book.title} style={{ height: '200px', objectFit: 'cover' }} />
-                              </Link>}
-                              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
-                                {book.order + 1}
-                              </span>
-                            </div>
-                            <div className="card-body">
-                              <h5 className="card-title">{book.title}</h5>                <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>
+            <div className="card h-100">
+              <div className="position-relative">
+                {book.imageUrl && <Link to={`/${book.webId}`}>
+                  <img src={book.imageUrl} className="card-img-top" alt={book.title} style={{ height: '200px', objectFit: 'cover' }} />
+                </Link>}
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
+                  {book.order + 1}
+                </span>
+              </div>
+              <div className="card-body">
+                <h5 className="card-title">{book.title}</h5>
+                <h6 className="card-subtitle mb-2 text-muted">Autor: {book.author}</h6>
                 <p className="card-text">Estado: {book.status}</p>
                 <p className="card-text">Visitas: {book.views || 0}</p>
                 <p className="card-text"><strong>ID Web:</strong> <button className="btn btn-info btn-sm" onClick={() => history.push(`/${book.webId}`)}><FontAwesomeIcon icon={faExternalLinkAlt} /> {book.webId}</button></p>
@@ -294,7 +315,6 @@ function BookList({ auth, db, storage }) {
                 ) : (
                   auth.currentUser && (
                     <div className="mt-3">
-                      
                       
                     </div>
                   )

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import YouTubeSearch from './YouTubeSearch';
@@ -7,28 +7,51 @@ const MovieList = ({ db, auth }) => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [youtubeResults, setYoutubeResults] = useState([]);
-
-  const fetchMovies = useCallback(async () => {
-    if (!db) return;
-    setLoading(true);
-    try {
-      const moviesCollection = collection(db, 'movies');
-      const q = query(moviesCollection, orderBy('order', 'asc'));
-      const querySnapshot = await getDocs(q);
-      const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMovies(moviesData);
-    } catch (error) {
-      console.error("Error fetching movies: ", error);
-    }
-    setLoading(false);
-  }, [db]);
+  const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
 
   useEffect(() => {
+    if (!db) return;
+
+    const fetchMovies = async () => {
+      setLoading(true);
+      try {
+        let q;
+        if (showOnlyMyItems && auth.currentUser) {
+          q = query(collection(db, 'movies'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
+        } else {
+          q = query(collection(db, 'movies'), orderBy('order', 'asc'));
+        }
+        const querySnapshot = await getDocs(q);
+        const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setMovies(moviesData);
+      } catch (error) {
+        console.error("Error fetching movies: ", error);
+      }
+      setLoading(false);
+    };
+
     fetchMovies();
-  }, [fetchMovies]);
+  }, [db, auth.currentUser, showOnlyMyItems]);
 
   const handleMovieAdded = () => {
-    fetchMovies();
+    const fetchAgain = async () => {
+      setLoading(true);
+      try {
+        let q;
+        if (showOnlyMyItems && auth.currentUser) {
+          q = query(collection(db, 'movies'), where('ownerId', '==', auth.currentUser.uid), orderBy('order', 'asc'));
+        } else {
+          q = query(collection(db, 'movies'), orderBy('order', 'asc'));
+        }
+        const querySnapshot = await getDocs(q);
+        const moviesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setMovies(moviesData);
+      } catch (error) {
+        console.error("Error fetching movies: ", error);
+      }
+      setLoading(false);
+    };
+    fetchAgain();
     setYoutubeResults([]);
   };
 
@@ -36,7 +59,7 @@ const MovieList = ({ db, auth }) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar esta película?")) {
       try {
         await deleteDoc(doc(db, "movies", movieId));
-        fetchMovies();
+        handleMovieAdded(); // Re-fetch
       } catch (error) {
         console.error("Error deleting document: ", error);
       }
@@ -58,6 +81,23 @@ const MovieList = ({ db, auth }) => {
         onSearchResults={setYoutubeResults}
       />
       <h2 className="mb-3">Películas</h2>
+
+      {auth.currentUser && (
+        <div className="form-check form-switch mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="showOnlyMyMovies"
+            checked={showOnlyMyItems}
+            onChange={(e) => setShowOnlyMyItems(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="showOnlyMyMovies">
+            Mostrar solo mis películas
+          </label>
+        </div>
+      )}
+
       <div className="row">
         {movies.length > 0 ? (
           movies.map((movie, index) => (

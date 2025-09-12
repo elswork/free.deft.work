@@ -1,18 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where, orderBy } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
 
 const VideojuegoList = ({ db, auth }) => {
   const [videojuegos, setVideojuegos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newVideojuego, setNewVideojuego] = useState({ name: '', url: '', imageUrl: '' });
+  const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
 
-  const fetchVideojuegos = useCallback(async () => {
+  const fetchVideojuegos = async () => {
     if (!db) return;
     setLoading(true);
     try {
-      const videojuegosCollection = collection(db, 'videojuegos');
-      const q = query(videojuegosCollection, orderBy("order"));
+      let q;
+      if (showOnlyMyItems && auth.currentUser) {
+        q = query(collection(db, 'videojuegos'), where('ownerId', '==', auth.currentUser.uid), orderBy("order"));
+      } else {
+        q = query(collection(db, 'videojuegos'), orderBy("order"));
+      }
       const querySnapshot = await getDocs(q);
       const videojuegosData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVideojuegos(videojuegosData);
@@ -20,11 +24,11 @@ const VideojuegoList = ({ db, auth }) => {
       console.error("Error fetching videojuegos: ", error);
     }
     setLoading(false);
-  }, [db]);
+  };
 
   useEffect(() => {
     fetchVideojuegos();
-  }, [fetchVideojuegos]);
+  }, [db, auth.currentUser, showOnlyMyItems]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -88,23 +92,44 @@ const VideojuegoList = ({ db, auth }) => {
 
   return (
     <div className="mt-4">
-      <h2 className="mb-3">Añadir Nuevo Videojuego</h2>
-      <form onSubmit={handleAddVideojuego} className="mb-5">
-        <div className="mb-3">
-          <input type="url" name="url" className="form-control" placeholder="URL del videojuego" value={newVideojuego.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
-        </div>
-        <div className="mb-3">
-          <input type="text" name="name" className="form-control" placeholder="Nombre del videojuego" value={newVideojuego.name} onChange={handleInputChange} required />
-        </div>
-        {newVideojuego.imageUrl && (
-          <div className="mb-3">
-            <img src={newVideojuego.imageUrl} alt="Preview" style={{ maxWidth: '200px' }} />
-          </div>
-        )}
-        <button type="submit" className="btn btn-primary">Añadir Videojuego</button>
-      </form>
+      {auth.currentUser && (
+        <>
+          <h2 className="mb-3">Añadir Nuevo Videojuego</h2>
+          <form onSubmit={handleAddVideojuego} className="mb-5">
+            <div className="mb-3">
+              <input type="url" name="url" className="form-control" placeholder="URL del videojuego" value={newVideojuego.url} onChange={handleInputChange} onBlur={handleUrlBlur} required />
+            </div>
+            <div className="mb-3">
+              <input type="text" name="name" className="form-control" placeholder="Nombre del videojuego" value={newVideojuego.name} onChange={handleInputChange} required />
+            </div>
+            {newVideojuego.imageUrl && (
+              <div className="mb-3">
+                <img src={newVideojuego.imageUrl} alt="Preview" style={{ maxWidth: '200px' }} />
+              </div>
+            )}
+            <button type="submit" className="btn btn-primary">Añadir Videojuego</button>
+          </form>
+        </>
+      )}
 
       <h2 className="mb-3">Videojuegos</h2>
+
+      {auth.currentUser && (
+        <div className="form-check form-switch mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="showOnlyMyGames"
+            checked={showOnlyMyItems}
+            onChange={(e) => setShowOnlyMyItems(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="showOnlyMyGames">
+            Mostrar solo mis videojuegos
+          </label>
+        </div>
+      )}
+
       <div className="row">
         {videojuegos.length > 0 ? (
           videojuegos.map((videojuego, index) => (
