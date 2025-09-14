@@ -1,3 +1,11 @@
+:root {
+  --indigo-dye: #08415c;
+  --persian-red: #cc2936;
+  --slate-gray: #6b818c;
+  --peach: #f1bf98;
+  --lavender-blush: #eee5e9;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

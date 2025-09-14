@@ -1,5 +1,5 @@
 body {
-  background-color: #f5f5dc; /* Color de fondo amarillento */
+  background-color: var(--lavender-blush); /* Color de fondo claro */
   background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); /* Textura de papel */
   background-repeat: repeat;
 }
@@ -20,18 +20,18 @@ body {
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: var(--indigo-dye);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: var(--peach);
 }
 
 .App-link {
-  color: #61dafb;
+  color: var(--persian-red);
 }
 
 @keyframes App-logo-spin {
