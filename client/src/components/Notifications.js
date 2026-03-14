@@ -50,10 +50,22 @@ function Notifications({ auth, db, setUnreadNotifications }) {
       );
     }
     
-    // Default to comment notification
+    if (notification.type === 'review') {
+      return (
+        <Link to={`/${notification.itemId}`} {...commonProps}>
+          <strong>{notification.userName}</strong> ha dejado una reseña en <strong>{notification.itemTitle}</strong>.
+        </Link>
+      );
+    }
+
+    // Default to comment notification (legacy or generic)
+    const linkTo = notification.bookWebId || notification.itemId || notification.contentId || '';
+    const itemName = notification.bookTitle || notification.contentTitle || notification.itemTitle || 'tu contenido';
+    const userName = notification.commenterName || notification.userName || 'Alguien';
+    
     return (
-      <Link to={`/${notification.bookWebId}`} {...commonProps}>
-        <strong>{notification.commenterName}</strong> comentó en tu libro <strong>{notification.bookTitle}</strong>.
+      <Link to={`/${linkTo}`} {...commonProps}>
+        <strong>{userName}</strong> comentó en <strong>{itemName}</strong>.
       </Link>
     );
   };

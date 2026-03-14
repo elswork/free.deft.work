@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, doc, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPrint, faPaperPlane, faTrashAlt, faDownload, faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPrint, faPaperPlane, faTrashAlt, faDownload, faShareAlt, faStar as faStarSolid } from '@fortawesome/free-solid-svg-icons';
+import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
 import { Helmet } from 'react-helmet';
 import { useReactToPrint } from 'react-to-print';
 import { QRCodeSVG } from 'qrcode.react';
@@ -15,8 +16,11 @@ function BookDetail({ db, auth }) {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [forumEntries, setForumEntries] = useState([]);
-  const [newEntryText, setNewEntryText] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [legacyReviewsByBookId, setLegacyReviewsByBookId] = useState([]);
+  const [legacyReviewsByWebId, setLegacyReviewsByWebId] = useState([]);
+  const [newReviewText, setNewReviewText] = useState('');
+  const [newRating, setNewRating] = useState(5);
   const [ownerName, setOwnerName] = useState('');
   const [ownerFollowersCount, setOwnerFollowersCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -99,34 +103,86 @@ function BookDetail({ db, auth }) {
 
   useEffect(() => {
     if (webId) {
-      const q = query(
-        collection(db, "forumEntries"),
-        where("webId", "==", webId),
+      // Listener para reseñas nuevas
+      const qNew = query(
+        collection(db, "reviews"),
+        where("itemId", "==", webId),
+        where("itemType", "==", "book"),
         orderBy("timestamp", "asc")
       );
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      const unsubscribeNew = onSnapshot(qNew, (snapshot) => {
         const entries = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-        setForumEntries(entries);
+        setReviews(entries);
       });
-      return () => unsubscribe();
+
+      // Listener para comentarios antiguos (forumEntries) por bookId
+      const qLegacyBook = query(
+        collection(db, "forumEntries"),
+        where("bookId", "==", webId),
+        orderBy("timestamp", "asc")
+      );
+      const unsubscribeLegacyBook = onSnapshot(qLegacyBook, (snapshot) => {
+        const entries = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          comment: doc.data().text || doc.data().comment,
+          rating: doc.data().rating || 5,
+          isLegacy: true
+        }));
+        setLegacyReviewsByBookId(entries);
+      });
+
+      // Listener para comentarios antiguos (forumEntries) por webId
+      const qLegacyWeb = query(
+        collection(db, "forumEntries"),
+        where("webId", "==", webId),
+        orderBy("timestamp", "asc")
+      );
+      const unsubscribeLegacyWeb = onSnapshot(qLegacyWeb, (snapshot) => {
+        const entries = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          comment: doc.data().text || doc.data().comment,
+          rating: doc.data().rating || 5,
+          isLegacy: true
+        }));
+        setLegacyReviewsByWebId(entries);
+      });
+
+      return () => {
+        unsubscribeNew();
+        unsubscribeLegacyBook();
+        unsubscribeLegacyWeb();
+      };
     }
   }, [webId, db]);
 
-  const handleAddEntry = async (e) => {
+  // Unificar y ordenar reseñas (eliminando duplicados por ID)
+  const allReviews = [...reviews, ...legacyReviewsByBookId, ...legacyReviewsByWebId]
+    .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
+    .sort((a, b) => {
+      const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : (a.timestamp instanceof Date ? a.timestamp.getTime() : 0);
+      const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : (b.timestamp instanceof Date ? b.timestamp.getTime() : 0);
+      return timeA - timeB;
+    });
+
+  const handleAddReview = async (e) => {
     e.preventDefault();
-    if (!newEntryText.trim() || !auth.currentUser) return;
+    if (!newReviewText.trim() || !auth.currentUser) return;
 
     try {
-      await addDoc(collection(db, "forumEntries"), {
-        webId,
+      await addDoc(collection(db, "reviews"), {
+        itemId: webId,
+        itemType: "book",
         userId: auth.currentUser.uid,
         userName: auth.currentUser.displayName || auth.currentUser.email,
-        text: newEntryText,
+        rating: newRating,
+        comment: newReviewText,
         timestamp: serverTimestamp(),
-        bookOwnerId: book.ownerId, // Añadir el ID del propietario del libro
+        itemOwnerId: book.ownerId, // Añadir el ID del propietario del libro
       });
 
       // Send notification to book owner
@@ -134,20 +190,21 @@ function BookDetail({ db, auth }) {
         const userRef = doc(db, "users", book.ownerId);
         await updateDoc(userRef, {
             notifications: arrayUnion({
-                commenterId: auth.currentUser.uid,
-                commenterName: auth.currentUser.displayName || auth.currentUser.email,
-                bookTitle: book.title,
-                bookWebId: webId,
+                userId: auth.currentUser.uid,
+                userName: auth.currentUser.displayName || auth.currentUser.email,
+                itemTitle: book.title,
+                itemId: webId,
                 timestamp: new Date(),
                 read: false,
-                type: 'comment'
+                type: 'review'
             })
         });
       }
 
-      setNewEntryText('');
+      setNewReviewText('');
+      setNewRating(5);
     } catch (error) {
-      console.error("Error adding forum entry:", error);
+      console.error("Error adding review:", error);
     }
   };
 
@@ -210,20 +267,21 @@ function BookDetail({ db, auth }) {
     }
   };
 
-  const handleDeleteComment = async (commentId, commentUserId) => {
+  const handleDeleteReview = async (reviewId, reviewUserId, isLegacy) => {
     if (!auth.currentUser) return;
+    const collectionName = isLegacy ? "forumEntries" : "reviews";
 
-    // Solo el autor del comentario o el propietario del libro pueden eliminarlo
-    if (auth.currentUser.uid === commentUserId || (book && auth.currentUser.uid === book.ownerId)) {
-      if (window.confirm("¿Estás seguro de que quieres eliminar este comentario?")) {
+    // Solo el autor de la reseña o el propietario del libro pueden eliminarla
+    if (auth.currentUser.uid === reviewUserId || (book && auth.currentUser.uid === book.ownerId)) {
+      if (window.confirm("¿Estás seguro de que quieres eliminar esta reseña?")) {
         try {
-          await deleteDoc(doc(db, "forumEntries", commentId));
+          await deleteDoc(doc(db, collectionName, reviewId));
         } catch (error) {
-          console.error("Error eliminando comentario:", error);
+          console.error("Error eliminando reseña:", error);
         }
       }
     } else {
-      alert("No tienes permiso para eliminar este comentario.");
+      alert("No tienes permiso para eliminar esta reseña.");
     }
   };
 
@@ -330,17 +388,33 @@ function BookDetail({ db, auth }) {
       </div>
 
       <div className="card p-4 shadow-sm">
-        <h3 className="mb-3">Foro del Libro</h3>
-        <div className="forum-entries mb-4" style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #eee', padding: '10px', borderRadius: '5px' }}>
-          {forumEntries.length === 0 ? (
-            <p>No hay entradas en el foro todavía.</p>
+        <h3 className="mb-3">Reseñas</h3>
+        <div className="reviews-list mb-4" style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid rgba(0,0,0,0.05)', padding: '20px', borderRadius: '15px', background: 'rgba(255,255,255,0.5)' }}>
+          {allReviews.length === 0 ? (
+            <p className="text-muted text-center py-4">No hay reseñas todavía. ¡Sé el primero en opinar!</p>
           ) : (
-            forumEntries.map((entry) => (
-              <div key={entry.id} className="mb-2 pb-2 border-bottom">
-                <p className="mb-0"><strong>{book.ownerId === entry.userId && <span className="badge bg-info">Propietario</span>} {entry.userName}</strong> ({entry.timestamp?.toDate().toLocaleString()}):</p>
-                <p className="mb-0">{renderTextWithLinks(entry.text)}</p>
-                {auth.currentUser && (auth.currentUser.uid === entry.userId || (book && auth.currentUser.uid === book.ownerId)) && (
-                  <button className="btn btn-danger btn-sm mt-1" onClick={() => handleDeleteComment(entry.id, entry.userId)}><FontAwesomeIcon icon={faTrashAlt} /> Eliminar</button>
+            allReviews.map((review) => (
+              <div key={review.id} className="mb-4 pb-3 border-bottom position-relative">
+                <div className="d-flex justify-content-between align-items-center">
+                  <p className="mb-1">
+                    <strong>{book.ownerId === review.userId && <span className="badge bg-primary me-2">Propietario</span>} {review.userName}</strong> 
+                    {review.isLegacy && <span className="badge bg-secondary ms-2" title="Comentario del sistema anterior">Histórico</span>}
+                    {(review.userId === 'arquimedes_ceo' || review.userId === 'athena_ai' || review.isSynthetic) && <span className="badge bg-info ms-2">Agente IA</span>}
+                    <span className="text-muted ms-2" style={{ fontSize: '0.85em' }}>
+                      {review.timestamp?.toDate ? review.timestamp.toDate().toLocaleString() : 'Reciente'}
+                    </span>
+                  </p>
+                  <div className="text-warning">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FontAwesomeIcon key={star} icon={star <= review.rating ? faStarSolid : faStarRegular} />
+                    ))}
+                  </div>
+                </div>
+                <p className="mb-0 mt-2 text-secondary" style={{ lineHeight: '1.5' }}>{renderTextWithLinks(review.comment)}</p>
+                {auth.currentUser && (auth.currentUser.uid === review.userId || (book && auth.currentUser.uid === book.ownerId)) && (
+                  <button className="btn btn-link text-danger btn-sm p-0 mt-2" onClick={() => handleDeleteReview(review.id, review.userId, review.isLegacy)}>
+                    <FontAwesomeIcon icon={faTrashAlt} /> Eliminar
+                  </button>
                 )}
               </div>
             ))
@@ -348,21 +422,33 @@ function BookDetail({ db, auth }) {
         </div>
 
         {auth.currentUser ? (
-          <form onSubmit={handleAddEntry}>
+          <form onSubmit={handleAddReview}>
             <div className="mb-3">
+              <label className="form-label font-weight-bold">Tu Calificación:</label>
+              <div className="mb-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FontAwesomeIcon
+                    key={star}
+                    icon={star <= newRating ? faStarSolid : faStarRegular}
+                    className="text-warning me-1"
+                    style={{ cursor: 'pointer', fontSize: '1.5em' }}
+                    onClick={() => setNewRating(star)}
+                  />
+                ))}
+              </div>
               <textarea
                 className="form-control"
                 rows="3"
-                placeholder="Escribe tu entrada en el foro..."
-                value={newEntryText}
-                onChange={(e) => setNewEntryText(e.target.value)}
+                placeholder="Escribe tu reseña..."
+                value={newReviewText}
+                onChange={(e) => setNewReviewText(e.target.value)}
                 required
               ></textarea>
             </div>
-            <button type="submit" className="btn btn-primary"><FontAwesomeIcon icon={faPaperPlane} /> Enviar Entrada</button>
+            <button type="submit" className="btn btn-primary"><FontAwesomeIcon icon={faPaperPlane} /> Publicar Reseña</button>
           </form>
         ) : (
-          <p className="text-center">Inicia sesión para participar en el foro.</p>
+          <p className="text-center text-muted">Inicia sesión para escribir una reseña.</p>
         )}
       </div>
     </div>

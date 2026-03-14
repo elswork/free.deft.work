@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where, orderBy } from 'firebase/firestore';
 
 const VideojuegoList = ({ db, auth }) => {
@@ -112,7 +113,7 @@ const VideojuegoList = ({ db, auth }) => {
         </>
       )}
 
-      <h2 className="mb-3">Videojuegos</h2>
+      <h2 className="mb-3">Juegos</h2>
 
       {auth.currentUser && (
         <div className="form-check form-switch mb-3">
@@ -137,16 +138,20 @@ const VideojuegoList = ({ db, auth }) => {
               <div className="card h-100">
                 <div className="position-relative">
                   {videojuego.imageUrl && (
-                    <a href={videojuego.url} target="_blank" rel="noopener noreferrer">
+                    <Link to={`/videojuegos/${videojuego.id}`}>
                       <img src={videojuego.imageUrl} className="card-img-top" alt={videojuego.name} style={{ height: '200px', objectFit: 'cover' }} />
-                    </a>
+                    </Link>
                   )}
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
                     {videojuego.order + 1}
                   </span>
                 </div>
                 <div className="card-body">
-                  <h5 className="card-title">{videojuego.name}</h5>
+                  <h5 className="card-title">
+                    <Link to={`/videojuegos/${videojuego.id}`} className="text-decoration-none text-dark">
+                      {videojuego.name}
+                    </Link>
+                  </h5>
                   <p className="card-text"><a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.url}</a></p>
                   {auth.currentUser && auth.currentUser.uid === videojuego.ownerId && (
                     <button onClick={() => handleDelete(videojuego.id)} className="btn btn-danger mt-2 ms-2">

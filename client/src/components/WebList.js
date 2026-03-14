@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { collection, getDocs, query, doc, deleteDoc, addDoc, serverTimestamp, where, orderBy } from 'firebase/firestore';
 
 const WebList = ({ db, auth }) => {
@@ -112,7 +113,7 @@ const WebList = ({ db, auth }) => {
         </>
       )}
 
-      <h2 className="mb-3">Webs</h2>
+      <h2 className="mb-3">Web</h2>
 
       {auth.currentUser && (
         <div className="form-check form-switch mb-3">
@@ -125,7 +126,7 @@ const WebList = ({ db, auth }) => {
             onChange={(e) => setShowOnlyMyItems(e.target.checked)}
           />
           <label className="form-check-label" htmlFor="showOnlyMyWebs">
-            Mostrar solo mis webs
+            Mostrar solo mis web
           </label>
         </div>
       )}
@@ -137,16 +138,20 @@ const WebList = ({ db, auth }) => {
               <div className="card h-100">
                 <div className="position-relative">
                   {web.imageUrl && (
-                    <a href={web.url} target="_blank" rel="noopener noreferrer">
+                    <Link to={`/webs/${web.id}`}>
                       <img src={web.imageUrl} className="card-img-top" alt={web.name} style={{ height: '200px', objectFit: 'cover' }} />
-                    </a>
+                    </Link>
                   )}
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style={{ zIndex: 1 }}>
                     {web.order + 1}
                   </span>
                 </div>
                 <div className="card-body">
-                  <h5 className="card-title">{web.name}</h5>
+                  <h5 className="card-title">
+                    <Link to={`/webs/${web.id}`} className="text-decoration-none text-dark">
+                      {web.name}
+                    </Link>
+                  </h5>
                   <p className="card-text"><a href={web.url} target="_blank" rel="noopener noreferrer">{web.url}</a></p>
                   {auth.currentUser && auth.currentUser.uid === web.ownerId && (
                     <button onClick={() => handleDelete(web.id)} className="btn btn-danger mt-2 ms-2">

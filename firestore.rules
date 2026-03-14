@@ -34,7 +34,14 @@ service cloud.firestore {
     match /forumEntries/{entryId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.bookOwnerId);
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.bookOwnerId || request.auth.uid == resource.data.contentOwnerId);
+    }
+
+    // Reglas para la nueva colección unificada de reseñas
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.itemOwnerId);
     }
 
     // Reglas para la colección de chats y subcolección de mensajes
@@ -51,6 +58,12 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow read: if request.auth != null && request.auth.uid == resource.data.recipientId;
       allow update: if request.auth != null && request.auth.uid == resource.data.recipientId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+    }
+
+    // Reglas para la colección de solicitudes de agentes (Embajada)
+    match /agent_requests/{requestId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
     }
 
     // Reglas para contenido de YouTube

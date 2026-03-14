@@ -1,44 +1,111 @@
-body {
-  background-color: var(--lavender-blush); /* Color de fondo claro */
-  background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); /* Textura de papel */
-  background-repeat: repeat;
-}
-
 .App {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+header {
+  padding-top: 2rem;
+  margin-bottom: 4rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Navegación Flotante Premium */
+nav .nav {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 10px;
+  border-radius: 50px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-premium);
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.App-header {
-  background-color: var(--indigo-dye);
-  min-height: 100vh;
+nav .nav-item .btn {
+  border-radius: 40px;
+  padding: 10px 20px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: var(--peach);
+  background: transparent;
+  color: var(--text-secondary);
 }
 
-.App-link {
-  color: var(--persian-red);
+nav .nav-item .btn:hover {
+  background: white;
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+nav .nav-item .btn svg {
+  margin-right: 10px !important;
+  font-size: 1.1rem;
+}
+
+/* Botones de Acción Principal */
+.btn-primary {
+  background: var(--primary) !important;
+  color: white !important;
+  box-shadow: 0 4px 14px var(--primary-glow) !important;
+  border: none !important;
+}
+
+.btn-primary:hover {
+  background: #4338ca !important;
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px var(--primary-glow) !important;
+}
+
+/* Hero Section V2 */
+.hero-container {
+  padding: 4rem 2rem;
+  border-radius: 30px;
+  background: transparent;
+  margin-bottom: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  background: linear-gradient(to right, var(--primary), #818cf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.5rem;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto 2rem;
+}
+
+/* Estilo para el Logo */
+.logo-main {
+  max-width: 180px;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+  transition: transform 0.5s ease;
+}
+
+.logo-main:hover {
+  transform: scale(1.05) rotate(-2deg);
+}
+
+/* Sombra suave para el contenedor principal */
+main.card {
+  border: none !important;
+  padding: 3rem !important;
+  margin-bottom: 5rem;
+}
+
+.text-justify {
+  text-align: justify;
 }

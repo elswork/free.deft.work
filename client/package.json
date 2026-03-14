@@ -5,13 +5,14 @@
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
+    "@fortawesome/free-regular-svg-icons": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@testing-library/dom": "^8.19.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.11.0",
+    "axios": "^1.13.6",
     "dotenv": "^17.2.1",
     "firebase": "^9.23.0",
     "firebase-admin": "^13.4.0",
@@ -25,7 +26,8 @@
     "react-scripts": "5.0.1",
     "react-snap": "^1.23.0",
     "react-to-print": "^2.14.12",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xml2js": "^0.6.2"
   },
   "scripts": {
     "start": "react-scripts start",

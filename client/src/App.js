@@ -6,7 +6,7 @@ import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faSignInAlt, faSignOutAlt, faUser, faBook, faBell, faVideo, faFilm, faMusic, faGamepad, faGlobe } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUser, faBook, faBell, faVideo, faFilm, faMusic, faGamepad, faGlobe, faRobot } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
@@ -23,6 +23,9 @@ import MusicList from './components/MusicList';
 import MusicDetail from './components/MusicDetail';
 import VideojuegoList from './components/VideojuegoList';
 import WebList from './components/WebList';
+import WebDetail from './components/WebDetail';
+import VideojuegoDetail from './components/VideojuegoDetail';
+import AgentEmbassy from './components/AgentEmbassy';
 import './App.css';
 
 const app = initializeApp(firebaseConfig);
@@ -104,6 +107,7 @@ function App() {
       })
       .catch((err) => console.log('failed: ', err));
 
+    document.documentElement.lang = "es";
     return () => unsubscribe();
   }, []);
 
@@ -126,9 +130,9 @@ function App() {
   return (
     <Router>
       <div className="App container mt-5">
-        <header className="text-center mb-4">
+        <header className="text-center">
           <Link to="/">
-            <img src="/images/LogoFDW.webp" alt="Free Deft Work Logo" className="img-fluid" style={{ maxWidth: '200px' }} />
+            <img src="/images/LogoFDW.webp" alt="Free Deft Work Logo" className="logo-main" />
           </Link>
           <nav className="mt-3">
             <ul className="nav justify-content-center">
@@ -136,7 +140,7 @@ function App() {
                 <Link className="btn btn-outline-primary mx-1" to="/"><FontAwesomeIcon icon={faHome} /> Inicio</Link>
               </li>
               <li className="nav-item">
-                <Link className="btn btn-outline-primary mx-1" to="/libro"><FontAwesomeIcon icon={faBook} /> Libro</Link>
+                <Link className="btn btn-outline-primary mx-1" to="/libro"><FontAwesomeIcon icon={faBook} /> Libros</Link>
               </li>
               <li className="nav-item">
                 <Link className="btn btn-outline-primary mx-1" to="/videos"><FontAwesomeIcon icon={faVideo} /> Videos</Link>
@@ -145,13 +149,13 @@ function App() {
                 <Link className="btn btn-outline-primary mx-1" to="/movies"><FontAwesomeIcon icon={faFilm} /> Películas</Link>
               </li>
               <li className="nav-item">
-                <Link className="btn btn-outline-primary mx-1" to="/music"><FontAwesomeIcon icon={faMusic} /> Videoclips</Link>
+                <Link className="btn btn-outline-primary mx-1" to="/music"><FontAwesomeIcon icon={faMusic} /> Música</Link>
               </li>
               <li className="nav-item">
                 <Link className="btn btn-outline-primary mx-1" to="/videojuegos"><FontAwesomeIcon icon={faGamepad} /> Videojuegos</Link>
               </li>
               <li className="nav-item">
-                <Link className="btn btn-outline-primary mx-1" to="/webs"><FontAwesomeIcon icon={faGlobe} /> Webs</Link>
+                <Link className="btn btn-outline-primary mx-1" to="/webs"><FontAwesomeIcon icon={faGlobe} /> Web</Link>
               </li>
               <li className="nav-item">
                 <a className="btn btn-outline-info mx-1" href="https://github.com/elswork/free.deft.work/blob/main/README.md" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} /> Acerca de</a>
@@ -159,6 +163,11 @@ function App() {
               {user && (
                 <li className="nav-item">
                   <Link className="btn btn-outline-primary mx-1" to={`/profile/${user.alias || user.uid}`}><FontAwesomeIcon icon={faUser} /> Perfil</Link>
+                </li>
+              )}
+              {user && (
+                <li className="nav-item">
+                  <Link className="btn btn-outline-info mx-1" to="/embassy"><FontAwesomeIcon icon={faRobot} /> Embajada</Link>
                 </li>
               )}
               {user && (
@@ -187,26 +196,28 @@ function App() {
             <Route path="/" exact render={(props) => (
               <>
                 {user ? (
-                  <>
-                    <div className="card p-4 shadow-sm mx-auto mb-4" style={{ maxWidth: '800px' }}>
-                      <h2 className="card-title text-center mb-4">🎬 Free Deft Work: Tu Universo de Contenido 🚀</h2>
-                      <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videojuegos, webs, videos, películas y videoclips</strong> 🎮🌐🎥🎵.</p>
-                      <p className="text-justify">Construye tu perfil, sigue a otros usuarios y explora un mundo de contenido curado por una comunidad apasionada. Escanea el ISBN de un libro 📸 para añadirlo a tu colección, o busca en YouTube para encontrar esa joya audiovisual que quieres compartir. En Free Deft Work, cada elemento que añades es una nueva oportunidad para conectar. ✨</p>
-                    </div>
-                  </>
+                  <div className="hero-container">
+                    <h1 className="hero-title">Tu Universo de Contenido</h1>
+                    <p className="hero-subtitle">
+                      Descubre, colecciona y comparte. Desde libros con <strong>códigos QR únicos</strong> 🏷️ hasta 
+                      <strong> videojuegos, webs, videos, películas y música</strong> 🎮🌐🎥🎵.
+                    </p>
+                  </div>
                 ) : (
                   <>
                     {showWelcomeSection && (
-                      <div className="card p-4 shadow-sm mx-auto mb-4" style={{ maxWidth: '600px' }}>
-                        <h2 className="card-title text-center mb-4">🎬 Free Deft Work: Tu Universo de Contenido 🚀</h2>
-                        <p className="text-justify">¡Bienvenido a <strong>Free Deft Work</strong>! Esta plataforma es tu centro para descubrir, coleccionar y compartir contenido. Ya no se trata solo de libros viajeros con <strong>códigos QR únicos</strong> 🏷️; hemos expandido nuestro universo para incluir <strong>videojuegos, webs, videos, películas y videoclips</strong> 🎮🌐🎥🎵.</p>
-                        <p className="text-justify">Construye tu perfil, sigue a otros usuarios y explora un mundo de contenido curado por una comunidad apasionada. Para empezar, solo necesitas iniciar sesión.</p>
-                        <button className="btn btn-primary w-100 mt-3" onClick={() => setShowWelcomeSection(false)}>Entendido 👍</button>
+                      <div className="hero-container">
+                        <h1 className="hero-title">Bienvenido a Free Deft Work</h1>
+                        <p className="hero-subtitle">
+                          Tu centro para explorar un mundo de contenido curado por la comunidad. 
+                          Crea tu perfil, sigue a otros y haz crecer tu colección.
+                        </p>
+                        <button className="btn btn-primary px-5 py-3" onClick={() => setShowWelcomeSection(false)}>Empezar ahora</button>
                       </div>
                     )}
-                    <div className="text-center">
-                      <p className="lead">Por favor, inicia sesión para continuar.</p>
-                      <button className="btn btn-primary" onClick={handleSignIn}><FontAwesomeIcon icon={faGoogle} /> Iniciar Sesión con Google</button>
+                    <div className="text-center py-5">
+                      <p className="lead text-muted mb-4">Por favor, inicia sesión para acceder a tu biblioteca personalizada.</p>
+                      <button className="btn btn-primary btn-lg" onClick={handleSignIn}><FontAwesomeIcon icon={faGoogle} /> Iniciar Sesión con Google</button>
                     </div>
                   </>
                 )}
@@ -224,10 +235,13 @@ function App() {
             <Route path="/movies" render={(props) => <MovieList db={db} auth={auth} {...props} />} />
             <Route path="/music/:musicId" render={(props) => <MusicDetail db={db} auth={auth} {...props} />} />
             <Route path="/music" render={(props) => <MusicList db={db} auth={auth} {...props} />} />
+            <Route path="/videojuegos/:gameId" render={(props) => <VideojuegoDetail db={db} auth={auth} {...props} />} />
             <Route path="/videojuegos" render={(props) => <VideojuegoList db={db} auth={auth} {...props} />} />
+            <Route path="/webs/:webId" render={(props) => <WebDetail db={db} auth={auth} {...props} />} />
             <Route path="/webs" render={(props) => <WebList db={db} auth={auth} {...props} />} />
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
             <Route path="/profile/:alias" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
+            <Route path="/embassy" component={() => <AgentEmbassy db={db} auth={auth} />} />
             <Route path="/admin/youtube-search" component={() => <YouTubeSearch db={db} auth={auth} />} />
             <Route path="/:webId" component={() => <BookDetail db={db} auth={auth} />} />
           </Switch>

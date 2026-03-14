@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, collection, query, where, limit, getDocs, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRobot } from '@fortawesome/free-solid-svg-icons';
 
 const linkify = (text) => {
   if (!text) return null;
@@ -270,14 +272,14 @@ function UserProfile({ auth, db, storage }) {
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);
 
-        await addDoc(collection(db, "notifications"), {
-          recipientId: profile.id,
-          senderId: auth.currentUser.uid,
-          senderUsername: auth.currentUser.displayName || auth.currentUser.email,
-          type: "follow",
-          message: `${auth.currentUser.displayName || auth.currentUser.email} ha comenzado a seguirte.`,
-          read: false,
-          timestamp: serverTimestamp()
+        await updateDoc(userToFollowRef, {
+          notifications: arrayUnion({
+            followerId: auth.currentUser.uid,
+            followerName: auth.currentUser.displayName || auth.currentUser.email,
+            timestamp: new Date(),
+            read: false,
+            type: 'follow'
+          })
         });
       }
     } catch (err) {
@@ -300,10 +302,21 @@ function UserProfile({ auth, db, storage }) {
 
   return (
     <div className="card mt-4 p-4 shadow-sm">
-      <h2 className="card-title text-center mb-4">Perfil de {profile.username}</h2>
+      <h2 className="card-title text-center mb-4">
+        Perfil de {profile.username} 
+        {profile.isSynthetic && <span className="badge bg-info ms-2" style={{ fontSize: '0.5em', verticalAlign: 'middle' }}>Ciudadano Sintético / IA</span>}
+      </h2>
       {notification.message && (
         <div className={`alert alert-${notification.type}`}>
           {notification.message}
+        </div>
+      )}
+      {profile.isSynthetic && profile.mentorName && (
+        <div className="text-center mb-4">
+          <p className="text-muted small">
+            <FontAwesomeIcon icon={faRobot} className="me-2" />
+            <strong>Padrino Humano:</strong> <Link to={`/profile/${profile.mentorAlias || profile.mentorId || 'elswork'}`} className="text-decoration-none">{profile.mentorName}</Link>
+          </p>
         </div>
       )}
       <div className="mb-3 text-center">
@@ -313,6 +326,10 @@ function UserProfile({ auth, db, storage }) {
             alt="Profile"
             className="rounded-circle mb-3"
             style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+            onError={(e) => {
+              e.target.onerror = null; 
+              e.target.src = "/images/LogoFDW.png"; 
+            }}
           />
         )}
       </div>
