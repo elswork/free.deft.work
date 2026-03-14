@@ -38,46 +38,63 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
+      try {
+        if (currentUser) {
+          const userRef = doc(db, "users", currentUser.uid);
+          const userSnap = await getDoc(userRef);
 
-        // Base user data payload
-        const userData = {
-          uid: currentUser.uid,
-          username: currentUser.displayName || currentUser.email,
-          email: currentUser.email,
-          profilePictureUrl: currentUser.photoURL || '',
-        };
+          // Base user data payload - Minimal data to comply with security rules
+          const userData = {
+            username: currentUser.displayName || currentUser.email,
+            email: currentUser.email,
+            profilePictureUrl: currentUser.photoURL || '',
+          };
 
-        // Request token and add to payload if available
-        try {
-          const fcmToken = await requestForToken();
-          if (fcmToken) {
-            const existingToken = userSnap.exists() ? userSnap.data().fcmToken : null;
-            if (fcmToken !== existingToken) {
-              console.log('New or updated FCM token found, updating Firestore...');
-              userData.fcmToken = fcmToken;
+          // Request token and add to payload if available
+          try {
+            const fcmToken = await requestForToken();
+            if (fcmToken) {
+              const existingToken = userSnap.exists() ? userSnap.data().fcmToken : null;
+              if (fcmToken !== existingToken) {
+                console.log('New or updated FCM token found, updating Firestore...');
+                userData.fcmToken = fcmToken;
+              }
+            }
+          } catch (error) {
+            console.error('Error handling FCM token:', error);
+          }
+
+          // Create or update user document
+          if (!userSnap.exists()) {
+            console.log('New user, creating document...');
+            const newUserProfile = { ...userData, uid: currentUser.uid, followers: [], following: [] };
+            await setDoc(userRef, newUserProfile, { merge: true });
+            setUser({ ...currentUser, ...newUserProfile });
+          } else {
+            console.log('Existing user, merging data...');
+            const fullUserProfile = { ...userSnap.data(), ...userData };
+            setUser({ ...currentUser, ...fullUserProfile });
+            
+            // Non-blocking update
+            try {
+              setDoc(userRef, userData, { merge: true }).catch(fsError => {
+                console.error('Firestore merge failed (background):', fsError);
+              });
+            } catch (fsError) {
+              console.error('Firestore merge failed (immediate):', fsError);
             }
           }
-        } catch (error) {
-          console.error('Error handling FCM token:', error);
-        }
-
-        // Create or update user document
-        if (!userSnap.exists()) {
-          console.log('New user, creating document...');
-          const newUserProfile = { ...userData, followers: [], following: [] };
-          await setDoc(userRef, newUserProfile, { merge: true });
-          setUser({ ...currentUser, ...newUserProfile });
         } else {
-          console.log('Existing user, merging data...');
-          await setDoc(userRef, userData, { merge: true });
-          const fullUserProfile = { ...userSnap.data(), ...userData };
-          setUser({ ...currentUser, ...fullUserProfile });
+          setUser(null);
         }
-      } else {
-        setUser(null);
+      } catch (globalAuthError) {
+        console.error('Global error in auth state change:', globalAuthError);
+        // Fallback to minimal user state if everything else fails
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          setUser(null);
+        }
       }
     });
 
@@ -196,16 +213,10 @@ function App() {
               </>
             )} />
             <Route path="/libro" exact render={(props) => (
-              user ? (
-                <div className="text-center">
-                  <p className="lead">¡Bienvenido, {user.displayName}!</p>
-                  <BookList auth={auth} db={db} storage={storage} />
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p>Cargando...</p>
-                </div>
-              )
+              <div className="text-center">
+                {user && <p className="lead">¡Bienvenido, {user.displayName}!</p>}
+                <BookList auth={auth} db={db} storage={storage} />
+              </div>
             )} />
             <Route path="/videos/:videoId" render={(props) => <VideoDetail db={db} auth={auth} {...props} />} />
             <Route path="/videos" render={(props) => <VideoList db={db} auth={auth} {...props} />} />
