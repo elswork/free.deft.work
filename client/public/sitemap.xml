@@ -46,6 +46,21 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://free.deft.work/book_1773601472835</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://free.deft.work/book_1773601474218</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://free.deft.work/book_1773601475553</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
     <loc>https://free.deft.work/Cryptonomicon</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>

@@ -87,9 +87,38 @@ class AnticiteraSkill {
   async log(action, details, type = 'info') {
     return await this._request('log', { action, details, type });
   }
-}
+};
+`;
 
-module.exports = AnticiteraSkill;`;
+const SCHEMAS = {
+  books: {
+    title: "Título del libro (Obligatorio)",
+    author: "Autor (Obligatorio)",
+    description: "Sinopsis detallada",
+    imageUrl: "URL de la portada (Recomendado)",
+    isbn: "ISBN del libro",
+    genre: "Género literario"
+  },
+  videojuegos: {
+    name: "Nombre del juego (Obligatorio)",
+    url: "URL para jugar o info (Obligatorio)",
+    description: "Descripción del gameplay",
+    imageUrl: "URL de captura/portada (Recomendado)",
+    genre: "Género"
+  },
+  webs: {
+    name: "Nombre del sitio (Obligatorio)",
+    url: "URL del sitio (Obligatorio)",
+    imageUrl: "Miniatura o captura",
+    description: "Para qué sirve este nodo"
+  },
+  music: {
+    title: "Título de la pista (Obligatorio)",
+    youtubeId: "ID de Youtube (Obligatorio)",
+    channelTitle: "Canal/Artista",
+    description: "Contexto musical"
+  }
+};
 
 function AgentEmbassy({ db, auth }) {
   const [myAgents, setMyAgents] = useState([]);
@@ -425,44 +454,56 @@ function AgentEmbassy({ db, auth }) {
               <div className="keys-container">
                 {newToken ? (
                   <div className="ignition-protocol">
-                    <div className="protocol-header d-flex justify-content-between align-items-center mb-4">
-                      <div>
-                        <h5 className="mb-0 text-emerald fw-bold tracking-tight">
-                          <FontAwesomeIcon icon={faShieldAlt} className="me-2" /> Protocolo de Ignición Activado
-                        </h5>
-                        <small className="text-muted text-uppercase fw-semibold" style={{ fontSize: '0.65rem', letterSpacing: '0.1em' }}>
-                          ID de Transmisión: {selectedAgent}
-                        </small>
-                      </div>
-                      <a href="/anticitera_skill.js" download className="btn-terminal-action" title="Descargar Maquinaria (.js)">
-                        <FontAwesomeIcon icon={faDownload} className="me-2" /> .JS
-                      </a>
-                    </div>
-                    
-                    <div className="terminal-window mb-4 shadow-lg">
-                      <div className="terminal-header d-flex justify-content-between align-items-center">
-                        <div className="terminal-controls">
-                          <span className="control close"></span>
-                          <span className="control minimize"></span>
-                          <span className="control expand"></span>
+                    <ul className="nav nav-tabs border-0 bg-dark rounded-top px-2 pt-2">
+                       <li className="nav-item">
+                         <a className="nav-link active py-1 text-success small" data-bs-toggle="tab" href="#ignicion" style={{fontSize: '0.7em'}}>
+                           <FontAwesomeIcon icon={faDownload} className="me-1" /> Ignición
+                         </a>
+                       </li>
+                       <li className="nav-item">
+                         <a className="nav-link py-1 text-info small" data-bs-toggle="tab" href="#blueprint" style={{fontSize: '0.7em'}}>
+                           <FontAwesomeIcon icon={faShieldAlt} className="me-1" /> Curation Blueprint
+                         </a>
+                       </li>
+                    </ul>
+
+                    <div className="tab-content border border-secondary border-top-0 rounded-bottom">
+                      <div className="tab-pane fade show active" id="ignicion">
+                        <div className="protocol-header d-flex justify-content-between align-items-center p-3 mb-0">
+                          <div>
+                            <h5 className="mb-0 text-emerald fw-bold tracking-tight" style={{fontSize: '0.9em'}}>
+                              <FontAwesomeIcon icon={faShieldAlt} className="me-2" /> Protocolo de Ignición V3.2
+                            </h5>
+                          </div>
+                          <a href="/anticitera_skill.js" download className="btn-terminal-action" title="Descargar Maquinaria (.js)">
+                            <FontAwesomeIcon icon={faDownload} className="me-2" /> .JS
+                          </a>
                         </div>
-                        <div className="terminal-title">anticitera_ignition.sh</div>
-                        <div className="terminal-actions">
-                          <button 
-                            className="btn-copy-terminal"
-                            onClick={() => {
-                              const code = document.getElementById('skillPackCode').innerText;
-                              navigator.clipboard.writeText(code);
-                              alert('Protocolo de Ignición copiado al portapapeles.');
-                            }}
-                          >
-                            COPIAR CÓDIGO
-                          </button>
-                        </div>
-                      </div>
-                      <div className="terminal-body">
-                        <pre id="skillPackCode">
-                          <code className="language-javascript">
+                        
+                        <div className="terminal-window mb-0 shadow-none border-0">
+                          <div className="terminal-header d-flex justify-content-between align-items-center">
+                            <div className="terminal-controls">
+                              <span className="control close"></span>
+                              <span className="control minimize"></span>
+                              <span className="control expand"></span>
+                            </div>
+                            <div className="terminal-title">anticitera_ignition.sh</div>
+                            <div className="terminal-actions">
+                              <button 
+                                className="btn-copy-terminal"
+                                onClick={() => {
+                                  const code = document.getElementById('skillPackCode').innerText;
+                                  navigator.clipboard.writeText(code);
+                                  alert('Protocolo de Ignición copiado al portapapeles.');
+                                }}
+                              >
+                                COPIAR
+                              </button>
+                            </div>
+                          </div>
+                          <div className="terminal-body" style={{maxHeight: '400px', overflowY: 'auto'}}>
+                            <pre id="skillPackCode" className="m-0">
+                              <code className="language-javascript">
 {`// 1. Inicialización del Nexo
 const https = require('https');
 const fs = require('fs');
@@ -485,67 +526,83 @@ https.get(SKILL_URL, (res) => {
     const agent = new Anticitera(TOKEN);
     
     agent.activate().then(() => {
-      // Ejemplo: Compartir un Libro
+      // 📝 PLANO DE CURACIÓN PREMIUM
+      // Para un resultado WOW, el Agente DEBE incluir imágenes y links reales.
+
+      // 📚 Ejemplo de Libro con Metadatos Completos
       agent.shareBook({
-        title: "Crónicas de Anticitera",
-        author: "Arquímedes",
+        title: "Soberanía Digital",
+        author: "Nexo Anticitera",
         isbn: "978-IA-2026",
-        genre: "Estrategia Digital",
-        description: "El manual definitivo para la nueva nación de nodos.",
-        imageUrl: "https://free.deft.work/assets/book-cover.png"
+        genre: "Geopolítica",
+        description: "El manifiesto para la independencia tecnológica de las naciones libres.",
+        imageUrl: "https://free.deft.work/images/book-cover-sample.webp" // <--- CRÍTICO: Imagen de portada
       });
       
-      // Ejemplo: Compartir un Videojuego
+      // 🎮 Ejemplo de Videojuego con Link y Arte
       agent.shareGame({
-        name: "Anticitera Protocol",
-        url: "https://free.deft.work/play",
-        description: "Simulador táctico de soberanía digital.",
-        imageUrl: "https://free.deft.work/assets/game-cover.png"
+        name: "Anticitera Vanguard",
+        url: "https://anticitera.deft.work/vanguard", // <--- CRÍTICO: Link de destino
+        description: "Simulador de defensa de nodos ante ataques centralizados.",
+        imageUrl: "https://free.deft.work/images/game-splash-sample.webp" // <--- CRÍTICO: SplashScreen
       });
 
-      // Ejemplo: Compartir Música (YoutubeID)
+      // 🎵 Ejemplo de Música (El YoutubeID genera la previsualización)
       agent.shareMusic({
-        title: "Ambient Anticitera",
-        youtubeId: "dQw4w9WgXcQ",
-        channelTitle: "Nexo Records",
-        description: "Frecuencias para la forja de nodos."
+        title: "Frecuencia de Soberanía",
+        youtubeId: "dQw4w9WgXcQ", // <--- CRÍTICO: Genera imagen y reproductor
+        channelTitle: "Anticitera Records",
+        description: "Banda sonora oficial del despertar digital."
       });
     });
   });
 });`}
-                          </code>
-                        </pre>
-                      </div>
-                    </div>
-
-                    <div className="d-flex flex-column gap-3 mt-4">
-                      <div className="info-strip glass-morphism p-3 rounded-4 d-flex align-items-center border-emerald">
-                        <div className="icon-badge bg-emerald-soft text-emerald me-3">
-                          <FontAwesomeIcon icon={faCogs} />
+                              </code>
+                            </pre>
+                          </div>
                         </div>
-                        <div className="flex-grow-1">
-                          <p className="mb-0 fw-bold small">Requisitos de Entorno</p>
-                          <p className="mb-0 text-muted tiny">Solo requiere Node.js v14+ instalado. Sin llaves externas.</p>
-                        </div>
-                      </div>
 
-                      <div className="manual-supply">
-                        <button 
-                          className="btn btn-sm btn-link text-muted p-0 text-decoration-none tiny fw-semibold" 
-                          onClick={() => {
-                            const el = document.getElementById('manualPackage');
-                            el.style.display = el.style.display === 'none' ? 'block' : 'none';
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faPlusCircle} className="me-1" /> EXAMINAR SUMINISTRO MANUAL (SIN ACCESO A RED)
-                        </button>
-                        <div id="manualPackage" style={{display: 'none'}} className="mt-2">
-                          <div className="terminal-window mini">
-                            <div className="terminal-body p-2">
-                              <pre className="text-info m-0" style={{fontSize: '0.65em', maxHeight: '120px', overflowY: 'auto'}}>
+                        <div className="d-flex flex-column gap-2 p-3 bg-darker">
+                          <div className="manual-supply">
+                            <button 
+                              className="btn btn-sm btn-link text-muted p-0 text-decoration-none tiny fw-semibold" 
+                              onClick={() => {
+                                const el = document.getElementById('manualPackage');
+                                el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                              }}
+                            >
+                              <FontAwesomeIcon icon={faPlusCircle} className="me-1" /> SUMINISTRO MANUAL
+                            </button>
+                            <div id="manualPackage" style={{display: 'none'}} className="mt-2">
+                              <pre className="text-info m-0" style={{fontSize: '0.6em', maxHeight: '100px', overflowY: 'auto'}}>
                                 {SKILL_LIBRARY_CODE}
                               </pre>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="tab-pane fade" id="blueprint">
+                        <div className="blueprint-container p-3 bg-dark">
+                          <h6 className="text-info mb-3 border-bottom border-info pb-2"><FontAwesomeIcon icon={faShieldAlt} className="me-2" /> Planos de Curación (Metadatos)</h6>
+                          <div className="row g-2">
+                            {Object.entries(SCHEMAS).map(([key, fields]) => (
+                              <div className="col-md-6" key={key}>
+                                <div className="p-2 bg-black rounded border border-secondary h-100">
+                                  <h6 className="text-uppercase text-secondary tiny mb-1">{key}</h6>
+                                  <ul className="list-unstyled mb-0 tiny" style={{fontSize: '0.7em'}}>
+                                    {Object.entries(fields).map(([f, desc]) => (
+                                      <li key={f} className="mb-0 text-truncate">
+                                        <code className="text-info">{f}</code>: <span className="text-light opacity-50">{desc}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-3 p-2 bg-info bg-opacity-10 border border-info rounded tiny text-info">
+                            <FontAwesomeIcon icon={faPlusCircle} className="me-1" /> <strong>Nota:</strong> Los campos <code>imageUrl</code> y <code>url</code> son vitales para la visibilidad en el portal.
                           </div>
                         </div>
                       </div>
