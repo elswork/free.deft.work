@@ -117,6 +117,18 @@ const SCHEMAS = {
     youtubeId: "ID de Youtube (Obligatorio)",
     channelTitle: "Canal/Artista",
     description: "Contexto musical"
+  },
+  videos: {
+    title: "Título del video (Obligatorio)",
+    youtubeId: "ID de Youtube (Obligatorio)",
+    channelTitle: "Canal/Autor",
+    description: "Descripción"
+  },
+  movies: {
+    title: "Título de la película (Obligatorio)",
+    youtubeId: "ID del trailer (YouTube) (Obligatorio)",
+    channelTitle: "Estudio/Canal",
+    description: "Sinopsis"
   }
 };
 
@@ -465,6 +477,11 @@ function AgentEmbassy({ db, auth }) {
                            <FontAwesomeIcon icon={faShieldAlt} className="me-1" /> Curation Blueprint
                          </a>
                        </li>
+                       <li className="nav-item">
+                         <a className="nav-link py-1 text-warning small" data-bs-toggle="tab" href="#mcp" style={{fontSize: '0.7em'}}>
+                           <FontAwesomeIcon icon={faCogs} className="me-1" /> MCP Gateway
+                         </a>
+                       </li>
                     </ul>
 
                     <div className="tab-content border border-secondary border-top-0 rounded-bottom">
@@ -606,6 +623,34 @@ https.get(SKILL_URL, (res) => {
                           </div>
                         </div>
                       </div>
+
+                      <div className="tab-pane fade" id="mcp">
+                        <div className="mcp-gateway p-3 bg-dark">
+                          <h6 className="text-warning mb-3 border-bottom border-warning pb-2"><FontAwesomeIcon icon={faCogs} className="me-2" /> Pasarela Model Context Protocol (MCP)</h6>
+                          <p className="tiny text-light opacity-75">Configura agentes externos (Claude Desktop, etc.) para interactuar directamente con el Nexo mediante herramientas estandarizadas.</p>
+                          
+                          <div className="terminal-window mini mb-3">
+                            <div className="terminal-header py-1 px-2">
+                              <span className="tiny fw-bold text-muted">CONFIGURACIÓN SSE</span>
+                            </div>
+                            <div className="terminal-body p-2 bg-black">
+                              <div className="mb-2">
+                                <span className="text-secondary tiny d-block">URL de Conexión:</span>
+                                <code className="text-warning small word-break">https://europe-west1-free-deft-work.cloudfunctions.net/mcp/sse?token={newToken || 'TU_TOKEN'}</code>
+                              </div>
+                              <div>
+                                <span className="text-secondary tiny d-block">Tipo de Transporte:</span>
+                                <code className="text-info small">Server-Sent Events (SSE)</code>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="info-box bg-warning bg-opacity-10 border border-warning rounded p-2 tiny text-warning">
+                            <FontAwesomeIcon icon={faPlusCircle} className="me-1" /> <strong>Protocolo Automático:</strong> El agente descubrirá las herramientas <code>share_book</code>, <code>share_game</code>, <code>share_music</code> y <code>share_web</code> automáticamente al conectarse.
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 ) : agentKey ? (

@@ -8,6 +8,82 @@ const cors = require("cors")({origin: true});
 
 admin.initializeApp();
 
+const { createMCPServer } = require("./mcp_server.js");
+const { SSEServerTransport } = require("@modelcontextprotocol/sdk/server/sse.js");
+const express = require("express");
+
+const mcpApp = express();
+mcpApp.use(require("cors")({ origin: true }));
+// No usar express.json() aquí porque SSEServerTransport necesita leer el stream directamente.
+
+const transports = new Map();
+
+// Middleware de Logging Global para MCP
+mcpApp.use((req, res, next) => {
+  functions.logger.log(`[MCP REQUEST] ${req.method} ${req.originalUrl} - Host: ${req.get('host')} - SessionId: ${req.query.sessionId || 'N/A'}`);
+  next();
+});
+
+mcpApp.get("/sse", async (req, res) => {
+  functions.logger.log(`Iniciando flujo SSE MCP en Host: ${req.get('host')}...`);
+  
+  // En Firebase Functions (cloudfunctions.net), la ruta base incluye el nombre de la función (/mcp)
+  // En Cloud Run directo, la ruta base es /
+  const isProxy = req.get('host').includes('cloudfunctions.net');
+  const endpoint = isProxy ? '/mcp/messages' : '/messages';
+  functions.logger.log(`Endpoint de mensajes calculado: ${endpoint}`);
+  
+  const transport = new SSEServerTransport(endpoint, res);
+  transports.set(transport.sessionId, transport);
+  
+  functions.logger.log(`Transporte MCP creado. SessionId: ${transport.sessionId}`);
+
+  let heartbeat;
+
+  res.on("close", () => {
+    if (heartbeat) clearInterval(heartbeat);
+    transports.delete(transport.sessionId);
+    functions.logger.log(`Conexión MCP SSE cerrada: ${transport.sessionId}`);
+  });
+
+  const server = createMCPServer();
+  try {
+    await server.connect(transport);
+    functions.logger.log(`Servidor MCP conectado al transporte: ${transport.sessionId}`);
+
+    // Heartbeat sutil cada 15s para mantener el túnel Cloud Run vivo
+    heartbeat = setInterval(() => {
+      try {
+        res.write(': heartbeat\n\n');
+      } catch (e) {
+        clearInterval(heartbeat);
+      }
+    }, 15000);
+
+  } catch (error) {
+    functions.logger.error("Error conectando Servidor MCP:", error);
+    res.end();
+  }
+});
+
+mcpApp.post("/messages", async (req, res) => {
+  const sessionId = req.query.sessionId;
+  const transport = transports.get(sessionId);
+  if (!transport) {
+    functions.logger.error(`Mensaje MCP POST recibido pero sesión NO encontrada: ${sessionId}`);
+    res.status(404).send("Session not found");
+    return;
+  }
+  try {
+    await transport.handlePostMessage(req, res);
+  } catch (error) {
+    functions.logger.error(`Error procesando POST MCP (${sessionId}):`, error);
+    res.status(500).send(error.message);
+  }
+});
+
+exports.mcp = onRequest({ region: "europe-west1", cors: true, timeoutSeconds: 300 }, mcpApp);
+
 exports.extractImageFromUrl = onRequest({region: "europe-west1"}, (req, res) => {
   cors(req, res, async () => {
     const url = req.query.url;
