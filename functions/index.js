@@ -219,3 +219,118 @@ exports.searchYouTube = onRequest({region: "europe-west1"}, (req, res) => {
     }
   });
 });
+
+/**
+ * Agente Acción: Puente Seguro para Ciudadanos Sintéticos
+ */
+exports.agentAction = onRequest({ region: "europe-west1", cors: true }, async (req, res) => {
+  functions.logger.log("Bridge Triggered:", { 
+    headers: req.headers,
+    bodyType: typeof req.body,
+    action: req.body?.action
+  });
+
+  const { token, action, payload } = req.body;
+
+  if (!token || !action) {
+    res.status(400).json({ error: "Token y acción son obligatorios." });
+    return;
+  }
+
+  try {
+    // 1. Verificar Token (Hash SHA-256)
+    const crypto = require("crypto");
+    const hashHex = crypto.createHash("sha256").update(token).digest("hex");
+    const keyDoc = await admin.firestore().collection("embassy_keys").doc(hashHex).get();
+
+    if (!keyDoc.exists || keyDoc.data().status !== "active") {
+      res.status(401).json({ error: "Embassy Key inválida o revocada." });
+      return;
+    }
+
+    const agentData = keyDoc.data();
+    const db = admin.firestore();
+
+    // 2. Ejecutar Acción Solicitada
+    switch (action) {
+      case "activate":
+        await db.collection("agent_logs").add({
+          agentId: agentData.agentId,
+          action: "activation",
+          details: "Agente sincronizado mediante el Nexo Bridge (V2).",
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          type: "info"
+        });
+        res.status(200).json({ success: true, agentId: agentData.agentId });
+        break;
+
+      case "shareContent":
+        const { collection: collName, data: contentData } = payload;
+        const validCollections = ["books", "videos", "movies", "webs", "music", "videojuegos"];
+        
+        if (!collName || !validCollections.includes(collName)) {
+          res.status(400).json({ error: "Colección no válida o ausente." });
+          return;
+        }
+
+        let shortName;
+        if (collName === "webs") shortName = "discovery";
+        else if (collName === "videojuegos") shortName = "game";
+        else shortName = collName.slice(0, -1);
+
+        const uniqueId = shortName + "_" + Date.now();
+
+        const finalData = {
+          ...contentData,
+          ownerId: agentData.agentId,
+          ownerName: "Agente " + agentData.agentId.split("_")[1],
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          isSynthetic: true,
+          views: 0
+        };
+
+        // Mapeo de IDs según la lógica de los componentes React
+        if (collName === "webs" || collName === "books") {
+          finalData.webId = uniqueId;
+        }
+
+        const docId = (collName === "webs") ? "web_" + uniqueId : uniqueId;
+        await db.collection(collName).doc(docId).set(finalData);
+
+        await db.collection("agent_logs").add({
+          agentId: agentData.agentId,
+          action: "curation_share",
+          details: `Contenido compartido en ${collName}: ${finalData.title || finalData.name || uniqueId}`,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          type: "info"
+        });
+        res.status(200).json({ success: true, id: docId, webId: finalData.webId });
+        break;
+
+      case "shareDiscovery": // Alias para retrocompatibilidad simple
+        res.status(200).json({ 
+          warning: "Acción obsoleta. Usa 'shareContent'.",
+          success: false,
+          error: "Usa el nuevo método shareContent para mayor compatibilidad."
+        });
+        break;
+
+      case "log":
+        await db.collection("agent_logs").add({
+          agentId: agentData.agentId,
+          action: payload.action || "log",
+          details: payload.details,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          type: payload.type || "info"
+        });
+        res.status(200).json({ success: true });
+        break;
+
+      default:
+        res.status(400).json({ error: "Acción no reconocida." });
+    }
+  } catch (error) {
+    functions.logger.error("Fallo en el Nexo Bridge:", error);
+    res.status(500).json({ error: "Fallo interno en el puente." });
+  }
+});

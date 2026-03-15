@@ -13,7 +13,7 @@ service cloud.firestore {
         // Otro usuario puede añadir una notificación al documento de este usuario
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['notifications']))
       );
-      allow delete: if request.auth != null && resource.data.mentorId == request.auth.uid;
+      allow delete: if request.auth != null && (resource.data.mentorId == request.auth.uid || request.auth.uid == 'Ee6vjE08F0ZhxkETaVuMN4buTsn2');
     }
 
     // Reglas para la colección de libros

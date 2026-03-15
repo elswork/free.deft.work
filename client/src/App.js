@@ -6,7 +6,7 @@ import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faSignInAlt, faSignOutAlt, faUser, faBook, faBell, faVideo, faFilm, faMusic, faGamepad, faGlobe, faRobot } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUser, faBook, faBell, faVideo, faFilm, faMusic, faGamepad, faGlobe, faRobot, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 import BookList from './components/BookList';
 import UserProfile from './components/UserProfile';
@@ -26,6 +26,7 @@ import WebList from './components/WebList';
 import WebDetail from './components/WebDetail';
 import VideojuegoDetail from './components/VideojuegoDetail';
 import AgentEmbassy from './components/AgentEmbassy';
+import AdminPanel from './components/AdminPanel';
 import './App.css';
 
 const app = initializeApp(firebaseConfig);
@@ -69,20 +70,16 @@ function App() {
 
           // Create or update user document
           if (!userSnap.exists()) {
-            console.log('New user, creating document...');
             const newUserProfile = { ...userData, uid: currentUser.uid, followers: [], following: [] };
             await setDoc(userRef, newUserProfile, { merge: true });
             setUser({ ...currentUser, ...newUserProfile });
           } else {
-            console.log('Existing user, merging data...');
             const fullUserProfile = { ...userSnap.data(), ...userData };
             setUser({ ...currentUser, ...fullUserProfile });
             
             // Non-blocking update
             try {
-              setDoc(userRef, userData, { merge: true }).catch(fsError => {
-                console.error('Firestore merge failed (background):', fsError);
-              });
+              setDoc(userRef, userData, { merge: true });
             } catch (fsError) {
               console.error('Firestore merge failed (immediate):', fsError);
             }
@@ -110,6 +107,7 @@ function App() {
     document.documentElement.lang = "es";
     return () => unsubscribe();
   }, []);
+
 
   const handleSignIn = async () => {
     try {
@@ -170,6 +168,23 @@ function App() {
                   <Link className="btn btn-outline-info mx-1" to="/embassy"><FontAwesomeIcon icon={faRobot} /> Embajada</Link>
                 </li>
               )}
+              {(() => {
+                if (!user) return null;
+                const isAdmin = 
+                  (user.displayName && user.displayName.toLowerCase().includes('elswork')) || 
+                  (user.alias && user.alias.toLowerCase().includes('elswork')) || 
+                  (user.email && user.email.toLowerCase().includes('elswork')) ||
+                  (user.uid === 'Ee6vjE08F0ZhxkETaVuMN4buTsn2');
+                
+                if (isAdmin) {
+                  return (
+                    <li className="nav-item">
+                      <Link className="btn btn-outline-warning mx-1" to="/admin"><FontAwesomeIcon icon={faShieldAlt} /> Panel</Link>
+                    </li>
+                  );
+                }
+                return null;
+              })()}
               {user && (
                 <li className="nav-item dropdown">
                   <button className="btn btn-outline-primary mx-1 dropdown-toggle" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -242,7 +257,16 @@ function App() {
             <Route path="/auth" component={() => <AuthForm auth={auth} />} />
             <Route path="/profile/:alias" component={() => <UserProfile db={db} storage={storage} auth={auth} />} />
             <Route path="/embassy" component={() => <AgentEmbassy db={db} auth={auth} />} />
-            <Route path="/admin/youtube-search" component={() => <YouTubeSearch db={db} auth={auth} />} />
+            <Route path="/admin" component={() => {
+              if (!user) return <div>Cargando...</div>;
+              const isAdmin = 
+                (user.displayName && user.displayName.toLowerCase().includes('elswork')) || 
+                (user.alias && user.alias.toLowerCase().includes('elswork')) || 
+                (user.email && user.email.toLowerCase().includes('elswork')) ||
+                (user.uid === 'Ee6vjE08F0ZhxkETaVuMN4buTsn2');
+              
+              return isAdmin ? <AdminPanel db={db} auth={auth} /> : <div>Acceso denegado</div>;
+            }} />
             <Route path="/:webId" component={() => <BookDetail db={db} auth={auth} />} />
           </Switch>
         </main>

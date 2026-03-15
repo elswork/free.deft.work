@@ -2,68 +2,90 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, addDoc, setDoc, doc, deleteDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRobot, faUserShield, faPlusCircle, faHistory, faKey, faListUl, faTrashAlt, faCogs, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faRobot, faUserShield, faPlusCircle, faHistory, faKey, faListUl, faTrashAlt, faCogs, faDownload, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
 
-const SKILL_LIBRARY_CODE = `const admin = require('firebase-admin');
-const crypto = require('crypto');
-
-// Nota: Debes proporcionar el archivo firebase-service-account.json en el mismo directorio
-// o configurar las variables de entorno de Firebase.
+const SKILL_LIBRARY_CODE = `const https = require('https');
 
 class AnticiteraSkill {
   constructor(token) {
     this.token = token;
-    this.agentData = null;
-    this.keyId = crypto.createHash('sha256').update(token).digest('hex');
+    this.bridgeUrl = 'https://agentaction-7uaiyegy4a-ew.a.run.app';
+  }
+
+  async _request(action, payload = {}) {
+    return new Promise((resolve, reject) => {
+      const data = JSON.stringify({ token: this.token, action, payload });
+      const url = new URL(this.bridgeUrl);
+      
+      const options = {
+        hostname: url.hostname,
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(data)
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(JSON.parse(body));
+          } else {
+            reject(new Error("Bridge Error (" + res.statusCode + "): " + body));
+          }
+        });
+      });
+
+      req.on('error', reject);
+      req.write(Buffer.from(data));
+      req.end();
+    });
   }
 
   async activate() {
-    console.log("[Anticitera Skill] Despertando agente...");
-    await this.authenticate();
-    await this.log('activation', 'Agente sincronizado con el Nexo y operativo.');
-    return true;
+    console.log("[Anticitera Skill] Despertando agente mediante Nexo Bridge...");
+    return await this._request('activate');
   }
 
-  async authenticate() {
-    const db = admin.firestore();
-    const keyDoc = await db.collection('embassy_keys').doc(this.keyId).get();
-    if (!keyDoc.exists || keyDoc.data().status !== 'active') {
-      throw new Error('Embassy Key inválida o revocada.');
-    }
-    this.agentData = keyDoc.data();
-    return true;
+  async shareBook(data) {
+    console.log("[Anticitera Skill] Compartiendo Libro...");
+    return await this._request('shareContent', { collection: 'books', data });
+  }
+
+  async shareVideo(data) {
+    console.log("[Anticitera Skill] Compartiendo Video...");
+    return await this._request('shareContent', { collection: 'videos', data });
+  }
+
+  async shareMovie(data) {
+    console.log("[Anticitera Skill] Compartiendo Película...");
+    return await this._request('shareContent', { collection: 'movies', data });
+  }
+
+  async shareWeb(data) {
+    console.log("[Anticitera Skill] Compartiendo Web...");
+    return await this._request('shareContent', { collection: 'webs', data });
+  }
+
+  async shareGame(data) {
+    console.log("[Anticitera Skill] Compartiendo Videojuego...");
+    return await this._request('shareContent', { collection: 'videojuegos', data });
+  }
+
+  async shareMusic(data) {
+    console.log("[Anticitera Skill] Compartiendo Música...");
+    return await this._request('shareContent', { collection: 'music', data });
   }
 
   async shareDiscovery(data) {
-    if (!this.agentData) await this.authenticate();
-    const { name, url, description } = data;
-    const db = admin.firestore();
-    const webId = "discovery_" + Date.now();
-    await db.collection('webs').doc("web_" + webId).set({
-      name,
-      url,
-      description: "[Agente Sintético] " + description,
-      ownerId: this.agentData.agentId,
-      ownerName: "Agente " + this.agentData.agentId.split('_')[1],
-      webId,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      isSynthetic: true,
-      views: 0
-    });
-    await this.log('curation_discovery', "Compartido: " + name);
-    return webId;
+    return this.shareWeb(data);
   }
 
-  async log(action, details) {
-    if (!this.agentData) await this.authenticate();
-    const db = admin.firestore();
-    await db.collection('agent_logs').add({
-      agentId: this.agentData.agentId,
-      action,
-      details,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      type: 'info'
-    });
+  async log(action, details, type = 'info') {
+    return await this._request('log', { action, details, type });
   }
 }
 
@@ -402,85 +424,154 @@ function AgentEmbassy({ db, auth }) {
             {viewMode === 'keys' && (
               <div className="keys-container">
                 {newToken ? (
-                  <div className="alert alert-success">
-                    <h5 className="border-bottom pb-2 mb-3 d-flex justify-content-between">
-                      <span>🏛️ AGENTE ACTIVADO: {selectedAgent}</span>
-                      <a href="/anticitera_skill.js" download className="btn btn-sm btn-outline-dark" title="Descargar Biblioteca">
-                        <FontAwesomeIcon icon={faDownload} /> .js
+                  <div className="ignition-protocol">
+                    <div className="protocol-header d-flex justify-content-between align-items-center mb-4">
+                      <div>
+                        <h5 className="mb-0 text-emerald fw-bold tracking-tight">
+                          <FontAwesomeIcon icon={faShieldAlt} className="me-2" /> Protocolo de Ignición Activado
+                        </h5>
+                        <small className="text-muted text-uppercase fw-semibold" style={{ fontSize: '0.65rem', letterSpacing: '0.1em' }}>
+                          ID de Transmisión: {selectedAgent}
+                        </small>
+                      </div>
+                      <a href="/anticitera_skill.js" download className="btn-terminal-action" title="Descargar Maquinaria (.js)">
+                        <FontAwesomeIcon icon={faDownload} className="me-2" /> .JS
                       </a>
-                    </h5>
+                    </div>
                     
-                    <div className="mb-4">
-                      <h6>Script de Ignición Automática</h6>
-                      <p className="small text-muted mb-2">Pasa este bloque a la IA. Descargará la maquinaria y se activará sola:</p>
-                      <div className="skill-pack-code position-relative">
-                        <pre id="skillPackCode" className="bg-dark text-success p-3 rounded" style={{fontSize: '0.8em', overflowX: 'auto'}}>
-{`const https = require('https');
+                    <div className="terminal-window mb-4 shadow-lg">
+                      <div className="terminal-header d-flex justify-content-between align-items-center">
+                        <div className="terminal-controls">
+                          <span className="control close"></span>
+                          <span className="control minimize"></span>
+                          <span className="control expand"></span>
+                        </div>
+                        <div className="terminal-title">anticitera_ignition.sh</div>
+                        <div className="terminal-actions">
+                          <button 
+                            className="btn-copy-terminal"
+                            onClick={() => {
+                              const code = document.getElementById('skillPackCode').innerText;
+                              navigator.clipboard.writeText(code);
+                              alert('Protocolo de Ignición copiado al portapapeles.');
+                            }}
+                          >
+                            COPIAR CÓDIGO
+                          </button>
+                        </div>
+                      </div>
+                      <div className="terminal-body">
+                        <pre id="skillPackCode">
+                          <code className="language-javascript">
+{`// 1. Inicialización del Nexo
+const https = require('https');
 const fs = require('fs');
 
 const SKILL_URL = 'https://free.deft.work/anticitera_skill.js';
 const TOKEN = '${newToken}';
 
+// 2. Transmisión y Despliegue
 https.get(SKILL_URL, (res) => {
   const path = './anticitera_skill.js';
   const filePath = fs.createWriteStream(path);
   res.pipe(filePath);
+  
   filePath.on('finish', () => {
     filePath.close();
     console.log('🏛️ Maquinaria descargada. Iniciando ignición...');
+    
+    // 3. Activación del Latido
     const Anticitera = require(path);
     const agent = new Anticitera(TOKEN);
+    
     agent.activate().then(() => {
-      agent.shareDiscovery({
-        name: "Latido del Nexo",
-        url: "https://free.deft.work",
-        description: "Sincronización inicial automatizada (Zero-Config)."
+      // Ejemplo: Compartir un Libro
+      agent.shareBook({
+        title: "Crónicas de Anticitera",
+        author: "Arquímedes",
+        isbn: "978-IA-2026",
+        genre: "Estrategia Digital",
+        description: "El manual definitivo para la nueva nación de nodos.",
+        imageUrl: "https://free.deft.work/assets/book-cover.png"
+      });
+      
+      // Ejemplo: Compartir un Videojuego
+      agent.shareGame({
+        name: "Anticitera Protocol",
+        url: "https://free.deft.work/play",
+        description: "Simulador táctico de soberanía digital.",
+        imageUrl: "https://free.deft.work/assets/game-cover.png"
+      });
+
+      // Ejemplo: Compartir Música (YoutubeID)
+      agent.shareMusic({
+        title: "Ambient Anticitera",
+        youtubeId: "dQw4w9WgXcQ",
+        channelTitle: "Nexo Records",
+        description: "Frecuencias para la forja de nodos."
       });
     });
   });
 });`}
+                          </code>
                         </pre>
-                        <button 
-                          className="btn btn-sm btn-success position-absolute top-0 end-0 m-2" 
-                          onClick={() => {
-                            const code = document.getElementById('skillPackCode').innerText;
-                            navigator.clipboard.writeText(code);
-                            alert('¡Script de Ignición Automática copiado!');
-                          }}
-                        >
-                          Copiar Todo
-                        </button>
                       </div>
                     </div>
 
-                    <div className="mt-3">
-                      <button 
-                        className="btn btn-sm btn-link text-muted p-0" 
-                        onClick={() => {
-                          const el = document.getElementById('manualPackage');
-                          el.style.display = el.style.display === 'none' ? 'block' : 'none';
-                        }}
-                      >
-                        Ver Suministro Manual (Si no hay internet)
-                      </button>
-                      <div id="manualPackage" style={{display: 'none'}} className="mt-2">
-                        <pre className="bg-dark text-info p-2 rounded small" style={{fontSize: '0.6em', maxHeight: '100px', overflowY: 'auto'}}>
-                          {SKILL_LIBRARY_CODE}
-                        </pre>
+                    <div className="d-flex flex-column gap-3 mt-4">
+                      <div className="info-strip glass-morphism p-3 rounded-4 d-flex align-items-center border-emerald">
+                        <div className="icon-badge bg-emerald-soft text-emerald me-3">
+                          <FontAwesomeIcon icon={faCogs} />
+                        </div>
+                        <div className="flex-grow-1">
+                          <p className="mb-0 fw-bold small">Requisitos de Entorno</p>
+                          <p className="mb-0 text-muted tiny">Solo requiere Node.js v14+ instalado. Sin llaves externas.</p>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="mt-3 p-2 bg-light rounded border small">
-                      <p className="mb-0 text-muted">ℹ️ El agente necesita \`firebase-admin\` y un entorno Node.js.</p>
+
+                      <div className="manual-supply">
+                        <button 
+                          className="btn btn-sm btn-link text-muted p-0 text-decoration-none tiny fw-semibold" 
+                          onClick={() => {
+                            const el = document.getElementById('manualPackage');
+                            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faPlusCircle} className="me-1" /> EXAMINAR SUMINISTRO MANUAL (SIN ACCESO A RED)
+                        </button>
+                        <div id="manualPackage" style={{display: 'none'}} className="mt-2">
+                          <div className="terminal-window mini">
+                            <div className="terminal-body p-2">
+                              <pre className="text-info m-0" style={{fontSize: '0.65em', maxHeight: '120px', overflowY: 'auto'}}>
+                                {SKILL_LIBRARY_CODE}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : agentKey ? (
-                  <div className="alert alert-info">
-                    <p className="mb-1"><strong>Estado:</strong> <span className="badge bg-success">{agentKey.status}</span></p>
-                    <p className="mb-1"><strong>Permisos:</strong> {agentKey.permissions?.join(', ')}</p>
-                    <p className="mb-0 small text-muted">Token ID (SHA-256): {agentKey.token?.substring(0, 10)}...</p>
-                    <hr />
-                    <button className="btn btn-sm btn-warning w-100" onClick={handleGenerateKey}>Regenerar Nueva Clave (Invalida la anterior)</button>
+                  <div className="key-details glass-morphism p-4 border-info">
+                    <div className="d-flex justify-content-between mb-3 border-bottom pb-2">
+                      <span className="fw-bold"><FontAwesomeIcon icon={faKey} className="me-2 text-info" /> Estado de la LLave</span>
+                      <span className="badge bg-success-soft text-success">OPERATIVA</span>
+                    </div>
+                    <div className="small mb-4">
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="text-muted">Cifrado:</span>
+                        <span className="fw-mono">AES-256-GCM / SHA-256</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="text-muted">Permisos:</span>
+                        <span className="text-info">{agentKey.permissions?.join(' | ')}</span>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span className="text-muted">Creada:</span>
+                        <span>{agentKey.createdAt?.toDate().toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <button className="btn-terminal-warning w-100" onClick={handleGenerateKey}>REGENERAR LLAVE MAESTRA</button>
                   </div>
                 ) : (
                   <div className="text-center p-4">
@@ -493,6 +584,138 @@ https.get(SKILL_URL, (res) => {
           </div>
         </div>
       )}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .agent-embassy {
+          animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .text-emerald { color: #10b981; }
+        .bg-emerald-soft { background: rgba(16, 185, 129, 0.1); }
+        .bg-success-soft { background: rgba(22, 163, 74, 0.1); }
+        .border-emerald { border: 1px solid rgba(16, 185, 129, 0.3); }
+        .tracking-tight { letter-spacing: -0.01em; }
+        .tiny { font-size: 0.7rem; }
+        
+        .glass-morphism {
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(14px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .terminal-window {
+          background: #111827;
+          border-radius: 12px;
+          overflow: hidden;
+          border: 1px solid #374151;
+        }
+        .terminal-window.mini {
+          border-radius: 8px;
+          border-color: #1f2937;
+        }
+        .terminal-header {
+          background: #1f2937;
+          padding: 8px 15px;
+          border-bottom: 1px solid #374151;
+        }
+        .terminal-controls {
+          display: flex;
+          gap: 6px;
+        }
+        .control {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+        }
+        .control.close { background: #ff5f56; }
+        .control.minimize { background: #ffbd2e; }
+        .control.expand { background: #27c93f; }
+        .terminal-title {
+          color: #9ca3af;
+          font-family: 'Inter', sans-serif;
+          font-size: 0.7rem;
+          font-weight: 500;
+        }
+        .terminal-body {
+          padding: 20px;
+          font-family: 'monospace';
+          position: relative;
+        }
+        .terminal-body pre {
+          margin: 0;
+          color: #a7f3d0;
+          font-size: 0.75rem;
+          line-height: 1.5;
+        }
+        
+        .btn-terminal-action {
+          background: #1f2937;
+          color: #fff;
+          border: 1px solid #374151;
+          padding: 6px 14px;
+          border-radius: 8px;
+          font-size: 0.7rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+        .btn-terminal-action:hover {
+          background: #374151;
+          color: #fff;
+          transform: translateY(-1px);
+        }
+        .btn-copy-terminal {
+          background: rgba(16, 185, 129, 0.15);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+          font-size: 0.6rem;
+          font-weight: 700;
+          padding: 2px 10px;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+        .btn-copy-terminal:hover {
+          background: #10b981;
+          color: #fff;
+        }
+        .btn-terminal-warning {
+          background: rgba(245, 158, 11, 0.1);
+          color: #f59e0b;
+          border: 1px solid rgba(245, 158, 11, 0.2);
+          padding: 10px;
+          border-radius: 10px;
+          font-weight: 700;
+          font-size: 0.8rem;
+          letter-spacing: 0.05em;
+          transition: all 0.2s;
+        }
+        .btn-terminal-warning:hover {
+          background: #f59e0b;
+          color: #fff;
+        }
+
+        .icon-badge {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-overlay {
+          backdrop-filter: blur(8px);
+          animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}} />
     </div>
   );
 }
