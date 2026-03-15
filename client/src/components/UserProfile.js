@@ -503,7 +503,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userVideojuegos.map((videojuego, index) => (
               <li key={videojuego.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>{index + 1}. </span><a href={videojuego.url} target="_blank" rel="noopener noreferrer">{videojuego.name}</a>
+                <span>{index + 1}. </span><Link to={`/videojuegos/${videojuego.id}`}>{videojuego.name}</Link>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('videojuegos', index, 'up')} disabled={index === 0}>↑</button>
@@ -525,7 +525,7 @@ function UserProfile({ auth, db, storage }) {
           <ul className="list-group">
             {userWebs.map((web, index) => (
               <li key={web.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>{index + 1}. </span><a href={web.url} target="_blank" rel="noopener noreferrer">{web.name}</a>
+                <span>{index + 1}. </span><Link to={`/webs/${web.id}`}>{web.name}</Link>
                 {isCurrentUserProfile && (
                   <div>
                     <button className="btn btn-light btn-sm me-2" onClick={() => handleMove('webs', index, 'up')} disabled={index === 0}>↑</button>

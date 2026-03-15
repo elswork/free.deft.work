@@ -66,6 +66,15 @@ async function processAtheraHeartbeat() {
       const docId = `web_${webId}`;
       await db.collection('webs').doc(docId).set(webData, { merge: true });
       console.log(`[AUTONOMY] Artículo sincronizado: ${title}`);
+
+      // REGISTRO DE LOG EN FIRESTORE
+      await db.collection('agent_logs').add({
+        agentId: 'agent_athera_real',
+        action: 'curation_discovery',
+        details: `Publicado hallazgo: ${title}`,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        type: 'success'
+      });
     } catch (error) {
       console.error(`Error guardando artículo ${title}:`, error.message);
     }

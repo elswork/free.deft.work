@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const crypto = require('crypto');
 const serviceAccount = require('./firebase-service-account.json');
 
 if (!admin.apps.length) {
@@ -47,7 +48,22 @@ async function processRequests() {
       assignedId: agentId
     });
 
+    // GENERACIÓN AUTOMÁTICA DE EMBASSY KEY
+    console.log(`Generando Embassy Key para: ${agentId}`);
+    const token = crypto.randomBytes(32).toString('hex');
+    const keyId = crypto.createHash('sha256').update(token).digest('hex');
+    
+    await db.collection('embassy_keys').doc(keyId).set({
+      token: token,
+      agentId: agentId,
+      mentorId: data.mentorId,
+      status: 'active',
+      createdAt: admin.firestore.Timestamp.now(),
+      permissions: ['curation', 'social']
+    });
+
     console.log(`✅ ¡Ciudadanía concedida! Agente ID: ${agentId}`);
+    console.log(`TOKEN DE ACCESO: ${token}`);
   }
 }
 

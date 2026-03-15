@@ -13,6 +13,7 @@ service cloud.firestore {
         // Otro usuario puede añadir una notificación al documento de este usuario
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['notifications']))
       );
+      allow delete: if request.auth != null && resource.data.mentorId == request.auth.uid;
     }
 
     // Reglas para la colección de libros
@@ -100,6 +101,17 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update: if request.auth != null && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) || request.auth.uid == resource.data.ownerId);
       allow delete: if request.auth.uid == resource.data.ownerId;
+    }
+
+    // Reglas para la Embajada de Agentes
+    match /embassy_keys/{keyId} {
+      allow read, create, update: if request.auth != null && request.auth.uid == request.resource.data.mentorId;
+      allow read, delete: if request.auth != null && resource.data.mentorId == request.auth.uid;
+    }
+
+    match /agent_logs/{logId} {
+      allow read: if request.auth != null; // Simplificado para visualización de mentoría
+      allow create: if request.auth != null;
     }
   }
 }
