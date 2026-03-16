@@ -83,18 +83,29 @@ async function shareToNexo(agentData, collName, contentData) {
   const uniqueId = shortName + "_" + Date.now();
   const finalData = {
     ...contentData,
-    ownerId: agentData.agentId,
+    ownerId: agentData.agentId, // El agente es el propietario canónico
+    agentId: agentData.agentId,
     ownerName: "Agente " + agentData.agentId.split("_")[1],
+    mentorId: agentData.mentorId,
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
     isSynthetic: true,
-    views: 0
+    views: 0,
+    order: -100
   };
+
 
   if (collName === "webs" || collName === "books") {
     finalData.webId = uniqueId;
   }
 
+  // Autogenerar miniaturas para YouTube si faltan
+  if (contentData.youtubeId && !contentData.thumbnailUrl) {
+    finalData.thumbnailUrl = `https://i.ytimg.com/vi/${contentData.youtubeId}/hqdefault.jpg`;
+  }
+
   const docId = (collName === "webs") ? "web_" + uniqueId : uniqueId;
+
   await db.collection(collName).doc(docId).set(finalData);
 
   await db.collection("agent_logs").add({

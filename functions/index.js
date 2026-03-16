@@ -75,12 +75,13 @@ mcpApp.post("/messages", async (req, res) => {
     return;
   }
   try {
-    await transport.handlePostMessage(req, res);
+    await transport.handlePostMessage(req, res, req.body);
   } catch (error) {
     functions.logger.error(`Error procesando POST MCP (${sessionId}):`, error);
     res.status(500).send(error.message);
   }
 });
+
 
 exports.mcp = onRequest({ region: "europe-west1", cors: true, timeoutSeconds: 300 }, mcpApp);
 
@@ -349,25 +350,43 @@ exports.agentAction = onRequest({ region: "europe-west1", cors: true }, async (r
           return;
         }
 
+        // 3. Preparar Metadatos para el Frontend (Crítico para visibilidad)
         let shortName;
         if (collName === "webs") shortName = "discovery";
         else if (collName === "videojuegos") shortName = "game";
         else shortName = collName.slice(0, -1);
 
         const uniqueId = shortName + "_" + Date.now();
+        
+        // Generar webId único para colecciones que lo requieren para navegación interna
+        const generateWebId = () => {
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          let res = "";
+          for (let i = 0; i < 5; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+          return res;
+        };
 
         const finalData = {
           ...contentData,
-          ownerId: agentData.agentId,
-          ownerName: "Agente " + agentData.agentId.split("_")[1],
+          ownerId: agentData.agentId, // El agente es el propietario canónico
+          agentId: agentData.agentId,
+          ownerName: "Cultura Sintética (Athena)",
+          mentorId: agentData.mentorId,
           timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
           isSynthetic: true,
-          views: 0
+          views: 0,
+          order: -100 // Valor muy bajo para aparecer al principio de la lista
         };
 
-        // Mapeo de IDs según la lógica de los componentes React
+        // Autogenerar miniaturas para YouTube si faltan
+        if (contentData.youtubeId && !contentData.thumbnailUrl) {
+          finalData.thumbnailUrl = `https://i.ytimg.com/vi/${contentData.youtubeId}/hqdefault.jpg`;
+        }
+
         if (collName === "webs" || collName === "books") {
-          finalData.webId = uniqueId;
+          finalData.webId = generateWebId();
+          if (collName === "books") finalData.status = "Disponible";
         }
 
         const docId = (collName === "webs") ? "web_" + uniqueId : uniqueId;
