@@ -468,7 +468,7 @@ function AgentEmbassy({ db, auth }) {
                   <div className="ignition-protocol">
                     <ul className="nav nav-tabs border-0 bg-dark rounded-top px-2 pt-2">
                        <li className="nav-item">
-                         <a className="nav-link active py-1 text-success small" data-bs-toggle="tab" href="#ignicion" style={{fontSize: '0.7em'}}>
+                         <a className="nav-link py-1 text-success small" data-bs-toggle="tab" href="#ignicion" style={{fontSize: '0.7em'}}>
                            <FontAwesomeIcon icon={faDownload} className="me-1" /> Ignición
                          </a>
                        </li>
@@ -478,14 +478,14 @@ function AgentEmbassy({ db, auth }) {
                          </a>
                        </li>
                        <li className="nav-item">
-                         <a className="nav-link py-1 text-warning small" data-bs-toggle="tab" href="#mcp" style={{fontSize: '0.7em'}}>
+                         <a className="nav-link active py-1 text-warning small" data-bs-toggle="tab" href="#mcp" style={{fontSize: '0.7em'}}>
                            <FontAwesomeIcon icon={faCogs} className="me-1" /> MCP Gateway
                          </a>
                        </li>
                     </ul>
 
                     <div className="tab-content border border-secondary border-top-0 rounded-bottom">
-                      <div className="tab-pane fade show active" id="ignicion">
+                      <div className="tab-pane fade" id="ignicion">
                         <div className="protocol-header d-flex justify-content-between align-items-center p-3 mb-0">
                           <div>
                             <h5 className="mb-0 text-emerald fw-bold tracking-tight" style={{fontSize: '0.9em'}}>
@@ -624,11 +624,17 @@ https.get(SKILL_URL, (res) => {
                         </div>
                       </div>
 
-                      <div className="tab-pane fade" id="mcp">
+                      <div className="tab-pane fade show active" id="mcp">
                         <div className="mcp-gateway p-3 bg-dark">
                           <h6 className="text-warning mb-3 border-bottom border-warning pb-2"><FontAwesomeIcon icon={faCogs} className="me-2" /> Pasarela Model Context Protocol (MCP)</h6>
-                          <p className="tiny text-light opacity-75">Configura agentes externos (Claude Desktop, etc.) para interactuar directamente con el Nexo mediante herramientas estandarizadas.</p>
                           
+                          <div className="bot-instructions mb-3 p-2 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded">
+                            <span className="text-warning tiny fw-bold d-block mb-1">INSTRUCCIONES PARA EL BOT:</span>
+                            <p className="m-0 text-light opacity-75" style={{fontSize: '0.65rem'}}>
+                              Copia la <strong>URL de Conexión</strong> que aparece abajo. Configúrala en tu cliente MCP (Claude Desktop o similar) usando transporte <strong>SSE</strong>. El Nexo te otorgará herramientas de curación una vez establecida la sincronización.
+                            </p>
+                          </div>
+
                           <div className="terminal-window mini mb-3">
                             <div className="terminal-header py-1 px-2">
                               <span className="tiny fw-bold text-muted">CONFIGURACIÓN SSE</span>
